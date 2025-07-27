@@ -2,13 +2,18 @@ import React from "react";
 import styled from "styled-components";
 import RoundArrowBtn from "../Components/RoundArrowBtn";
 import Topbar from "../Components/Topbar";
+import Background from '../Icons/BackgroundBasic.png';
+import ABCDIcon from "../Icons/ABCDIcon.png";
+import RobotIcon from "../Icons/RobotIcon.png";
 
 const Wrapper = styled.div`
     margin: 0;
     padding: 0;
     width: 100vw;
     height: 100vh;
-    background-color: #000;
+    background-image: url(${Background});
+    background-size: cover;
+    background-position: center;
 `
 
 const MainWrapper = styled.div`
@@ -20,6 +25,7 @@ const MainWrapper = styled.div`
     justify-content: center;
     align-items: center;
 `
+
 const MainText = styled.div`
     font-size: 54px;
     font-weight: 800;
@@ -91,7 +97,7 @@ AI 모델로부터 가장 정확하고 관련성 높은 결과를 얻을 수 있
                 <MainText>사용할 <Highlight>기능</Highlight>을 선택해주세요.</MainText>
                 <ChoiceWrapper>
                     <ChoiceBox>
-                        <TitleImg>🔠</TitleImg>
+                        <TitleImg><img src={ABCDIcon}/></TitleImg>
                         <TitleText>프롬프트 수정 및 최적화</TitleText>
                         <ChoiceText>
                             {text1}
@@ -99,7 +105,7 @@ AI 모델로부터 가장 정확하고 관련성 높은 결과를 얻을 수 있
                         <RoundArrowBtn>사용하기</RoundArrowBtn>
                     </ChoiceBox>
                     <ChoiceBox>
-                        <TitleImg>🤖</TitleImg>
+                        <TitleImg><img src={RobotIcon}/></TitleImg>
                         <TitleText>AI 교차검증</TitleText>
                         <ChoiceText>
                             {text2}
