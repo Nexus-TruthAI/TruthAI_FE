@@ -6,6 +6,8 @@ import FeatChoice from './Pages/FeatChoice.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <FeatChoice />
+    { /* 라우터 설정 */}
+    <App/>
+    {/* <FeatChoice /> 은 삭제해도 될듯*/}
   </StrictMode>,
 )
