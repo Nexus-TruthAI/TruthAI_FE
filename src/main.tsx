@@ -2,12 +2,18 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import FeatChoice from './Pages/FeatChoice.tsx'
+import CrossCheckQ from './Pages/CrossCheckQ.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    { /* 라우터 설정 */}
-    <App/>
-    {/* <FeatChoice /> 은 삭제해도 될듯*/}
+    <BrowserRouter>
+      <Routes>
+        <Route path='/' element={<App/>}/>
+        <Route path='/featchoice' element={<FeatChoice/>}/>
+        <Route path='/crosscheckq' element={<CrossCheckQ/>}/>
+      </Routes>
+    </BrowserRouter>
   </StrictMode>,
 )
