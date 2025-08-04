@@ -8,7 +8,6 @@ const isLoggedIn = () => !!localStorage.getItem("accessToken");
 
 function App() {
   return (
-    <Router>
       <Routes>
         {/* ❓ 기본 진입 시 로그인 여부 따라 리다이렉트 해야 할 페이지가 달라진다면 수정 필요*/}
         <Route
@@ -46,7 +45,6 @@ function App() {
           }
         />
       </Routes>
-    </Router>
   );
 }
 

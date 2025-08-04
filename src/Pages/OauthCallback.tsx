@@ -51,7 +51,7 @@ const OAuthCallback = () => {
 
   return (
     <Wrapper>
-      <p>로그인 처리 중... 콘솔 확인!!</p>
+      <p>로그인 처리 중... API 수정 필요!!</p>
     </Wrapper>
   );
 };
