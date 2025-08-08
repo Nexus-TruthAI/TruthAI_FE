@@ -4,6 +4,8 @@ import Background from "../Icons/BackgroundLong.png"
 import Topbar from "../Components/Topbar";
 import Sidebar from "../Components/Sidebar";
 import { useLocation, useNavigate } from "react-router-dom";
+import CopyIcon from "../Icons/Copy.svg";
+import BookmarkIcon from "../Icons/Bookmark.svg";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -90,6 +92,7 @@ const ContentArea = styled.div`
     max-height: 50rem;
     margin-bottom: 2rem;
     overflow: auto;
+    position: relative;
 `
 
 const ContentText = styled.div`
@@ -98,6 +101,41 @@ const ContentText = styled.div`
     font-weight: 600;
     line-height: 1.6;
     white-space: pre-line;
+    padding-bottom: 3rem;
+`
+
+const IconContainer = styled.div`
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    display: flex;
+    gap: 0.75rem;
+`
+
+const IconButton = styled.button`
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    img.copy {
+        width: 1.25rem;
+        height: 1.25rem;
+        filter: brightness(0) invert(1);
+    }
+
+    &:focus {
+        outline : none;
+    }
 `
 
 const ActionButton = styled.button`
@@ -304,6 +342,19 @@ AI 보안·프라이버시 보호 강화
         navigate('/crosscheckq');
     };
 
+    const handleCopyClick = async () => {
+        const currentResponse = aiResponses[activeTab as keyof typeof aiResponses];
+        if (currentResponse && currentResponse !== '생성된 결과가 없습니다.') {
+            try {
+                await navigator.clipboard.writeText(currentResponse);
+                // 복사 성공 시 피드백 (선택사항)
+                console.log('텍스트가 클립보드에 복사되었습니다.');
+            } catch (err) {
+                console.error('복사 실패:', err);
+            }
+        }
+    };
+
     return (
         <Wrapper>
             <Topbar/>
@@ -328,6 +379,16 @@ AI 보안·프라이버시 보호 강화
                             <ContentText>
                                 {aiResponses[activeTab as keyof typeof aiResponses]}
                             </ContentText>
+                            {aiResponses[activeTab as keyof typeof aiResponses] !== '생성된 결과가 없습니다.' && (
+                                <IconContainer>
+                                    <IconButton>
+                                        <img src={BookmarkIcon} alt="Bookmark" />
+                                    </IconButton>
+                                    <IconButton onClick={handleCopyClick}>
+                                        <img src={CopyIcon} alt="Copy" className="copy" />
+                                    </IconButton>
+                                </IconContainer>
+                            )}
                         </ContentArea>
                         
                         <ActionButton onClick={handleVerificationClick}>
