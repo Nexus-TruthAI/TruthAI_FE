@@ -3,6 +3,7 @@ import styled from "styled-components";
 import Background from "../Icons/BackgroundBasic.png"
 import Topbar from "../Components/Topbar";
 import Sidebar from "../Components/Sidebar";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -78,12 +79,20 @@ const LoadingBar = styled.div<{ progress: number }>`
 
 const CrossCheckL = () => {
     const [loadingProgress, setLoadingProgress] = useState(0);
+    const location = useLocation();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const interval = setInterval(() => {
             setLoadingProgress(prev => {
                 if (prev >= 100) {
                     clearInterval(interval);
+                    // 로딩 완료 후 CrossCheckA로 이동
+                    setTimeout(() => {
+                        navigate('/crosschecka', { 
+                            state: location.state 
+                        });
+                    }, 500);
                     return 100;
                 }
                 return prev + 2;
@@ -91,7 +100,7 @@ const CrossCheckL = () => {
         }, 100);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [navigate, location.state]);
 
     return (
         <Wrapper>

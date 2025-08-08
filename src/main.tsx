@@ -11,6 +11,7 @@ import OAuthCallbackPage from './Pages/OauthCallback.tsx'
 import PromptOptimize from './Pages/PromptOptimize.tsx'
 import CrossCheckL from './Pages/CrossCheckL.tsx'
 import CrossCheckA from './Pages/CrossCheckA.tsx'
+import Question from './Pages/Question.tsx'
 
 
 createRoot(document.getElementById('root')!).render(
@@ -25,6 +26,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path='/promptopt' element={<PromptOptimize/>}/>
         <Route path='/crosscheckl' element={<CrossCheckL/>}/>
         <Route path='/crosschecka' element={<CrossCheckA/>}/>
+        <Route path='/question' element={<Question/>}/>
       </Routes>
     </BrowserRouter>
   </StrictMode>,
