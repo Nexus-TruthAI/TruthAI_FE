@@ -287,7 +287,7 @@ const ModalButton = styled.button`
 const CrossCheckQ = () => {
     const [selectedAIs, setSelectedAIs] = useState<string[]>([]);
     const [showModal, setShowModal] = useState(false);
-    const [modalType, setModalType] = useState<'noInput' | 'singleAI' | null>(null);
+    const [modalType, setModalType] = useState<'noInput' | 'singleAI' | 'noAI' | null>(null);
     const [promptText, setPromptText] = useState('');
     const navigate = useNavigate();
 
@@ -306,13 +306,23 @@ const CrossCheckQ = () => {
             return;
         }
         
+        if (selectedAIs.length === 0) {
+            setModalType('noAI');
+            setShowModal(true);
+            return;
+        }
+        
         if (selectedAIs.length === 1) {
             setModalType('singleAI');
             setShowModal(true);
         } else if (selectedAIs.length > 1) {
             console.log("여러 AI 선택됨");
-        } else {
-            console.log("AI가 선택되지 않음");
+            navigate('/crosscheckl', { 
+                state: { 
+                    selectedAIs, 
+                    promptText 
+                } 
+            });
         }
     };
 
@@ -321,7 +331,12 @@ const CrossCheckQ = () => {
         setModalType(null);
         if (modalType === 'singleAI') {
             console.log("그대로 답변 확인하기 - 다른 페이지로 이동");
-            navigate('/crosscheckl');
+            navigate('/crosscheckl', { 
+                state: { 
+                    selectedAIs, 
+                    promptText 
+                } 
+            });
         }
     };
 
@@ -407,19 +422,24 @@ const CrossCheckQ = () => {
                 <ModalOverlay>
                     <Modal>
                         <ModalTitle>
-                            {modalType === 'noInput' ? '입력된 내용이 없습니다' : '환각여부 검증기능 사용불가'}
+                            {modalType === 'noInput' ? '입력된 내용이 없습니다' : 
+                             modalType === 'noAI' ? 'AI가 선택되지 않았습니다' : 
+                             '환각여부 검증기능 사용불가'}
                         </ModalTitle>
                         <ModalContent>
                             {modalType === 'noInput' 
                                 ? `프롬프트를 입력해야 답변을 생성할 수 있어요.
                                 질문이나 요청을 입력해 주세요.`
+                                : modalType === 'noAI'
+                                ? `AI를 선택해야 답변을 생성할 수 있어요.
+                                하나 이상의 AI를 선택해 주세요.`
                                 : `하나의 AI를 선택하였기 때문에 답변 확인 후 
                                 환각 여부를 검증할 수 없습니다. 
                                 여러 AI를 선택하여 환각 여부까지 확인하시겠습니까?`
                             }
                         </ModalContent>
                         <ModalButtons>
-                            {modalType === 'noInput' ? (
+                            {modalType === 'noInput' || modalType === 'noAI' ? (
                                 <ModalButton className="exit" onClick={handleModalCancel}>
                                     돌아가기
                                 </ModalButton>
