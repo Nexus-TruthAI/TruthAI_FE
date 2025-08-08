@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import Logo from "../Icons/Logo.svg";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Wrapper = styled.div`
     height: 4rem;
@@ -35,10 +36,11 @@ const NavigationWrapper = styled.ul`
     font-weight: 500;
 `;
 
-const NavItem = styled.li`
+const NavItem = styled.li<{ $isActive?: boolean }>`
     cursor: pointer;
+    color: ${props => props.$isActive ? '#C2CCFD' : '#fff'};
     &:hover {
-        text-decoration: underline;
+        color : #C2CCFD;
     }
 `;
 
@@ -51,6 +53,10 @@ const ProfileWrapper = styled.div`
 `;
 
 const Topbar = () => {
+    const location = useLocation();
+    const isQuestionPage = location.pathname === '/question';
+    const navigate = useNavigate();
+
     return (
         <Wrapper>
         <LeftGroup>
@@ -62,7 +68,7 @@ const Topbar = () => {
                 <NavItem>서비스 소개</NavItem>
                 <NavItem>AI 기능 소개</NavItem>
                 <NavItem>내 폴더</NavItem>
-                <NavItem>문의하기</NavItem>
+                <NavItem $isActive={isQuestionPage} onClick={() => navigate('/question')}>문의하기</NavItem>
             </NavigationWrapper>
         </LeftGroup>
         <ProfileWrapper />

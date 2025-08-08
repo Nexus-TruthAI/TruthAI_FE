@@ -152,6 +152,10 @@ const ActionButton = styled.button`
     &:hover {
         background-color: #E8E8E8;
     }
+
+    &:focus {
+        outline : none;
+    }
 `
 
 const ModalOverlay = styled.div`
