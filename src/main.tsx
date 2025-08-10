@@ -12,6 +12,7 @@ import PromptOptimize from './Pages/PromptOptimize.tsx'
 import CrossCheckL from './Pages/CrossCheckL.tsx'
 import CrossCheckA from './Pages/CrossCheckA.tsx'
 import Question from './Pages/Question.tsx'
+import FactCheck from './Pages/FactCheck.tsx'
 
 
 createRoot(document.getElementById('root')!).render(
@@ -27,6 +28,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path='/crosscheckl' element={<CrossCheckL/>}/>
         <Route path='/crosschecka' element={<CrossCheckA/>}/>
         <Route path='/question' element={<Question/>}/>
+        <Route path='/factcheck' element={<FactCheck/>}/>
       </Routes>
     </BrowserRouter>
   </StrictMode>,
