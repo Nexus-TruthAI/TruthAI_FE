@@ -9,8 +9,14 @@ const Wrapper = styled.div`
     align-items: center;
     justify-content: space-between;
     padding: 0 4rem;
-    background-color: transparent;
+    background-color: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
     color: #fff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
 `;
 
 const LeftGroup = styled.div`
@@ -24,6 +30,10 @@ const LogoWrapper = styled.div`
     align-items: center;
     margin-right: 6rem;
     gap: 0.5rem;
+
+    &:hover {
+        cursor: pointer;
+    }
 `;
 
 const NavigationWrapper = styled.ul`
@@ -52,26 +62,53 @@ const ProfileWrapper = styled.div`
     flex-shrink: 0;
 `;
 
+const LoginButton = styled.button`
+    background-color: #3B5AF7;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 0.7rem 1rem;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    
+    &:hover {
+        background-color: #3551de;
+    }
+
+    &:focus {
+        outline: none;
+    }
+`;
+
 const Topbar = () => {
     const location = useLocation();
     const isQuestionPage = location.pathname === '/question';
+    const isFeatChoicePage = location.pathname === '/featchoice';
+    const isMainPage = location.pathname === '/mainpage';
     const navigate = useNavigate();
+    const isLoggedIn = () => !!localStorage.getItem("accessToken");
 
     return (
         <Wrapper>
         <LeftGroup>
-            <LogoWrapper>
+            <LogoWrapper onClick={() => navigate('/mainpage')}>
             <img src={Logo} alt="logo" style={{ height: "24px" }} />
             TruthAI
             </LogoWrapper>
             <NavigationWrapper>
-                <NavItem>서비스 소개</NavItem>
-                <NavItem>AI 기능 소개</NavItem>
+                <NavItem $isActive={isMainPage} onClick={() => navigate('/mainpage')}>서비스 소개</NavItem>
+                <NavItem $isActive={isFeatChoicePage} onClick={() => navigate('/featchoice')}>AI 기능 선택</NavItem>
                 <NavItem>내 폴더</NavItem>
                 <NavItem $isActive={isQuestionPage} onClick={() => navigate('/question')}>문의하기</NavItem>
             </NavigationWrapper>
         </LeftGroup>
-        <ProfileWrapper />
+        {isLoggedIn() ? (
+            <ProfileWrapper />
+        ) : (
+            <LoginButton onClick={() => navigate('/login')}>Log In</LoginButton>
+        )}
         </Wrapper>
     );
 };

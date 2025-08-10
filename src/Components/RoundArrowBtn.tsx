@@ -21,6 +21,10 @@ const Btn = styled.button<BtnProps>`
     &:focus {
         outline: none;
     }
+
+    &:hover {
+        background-color: ${({ bgColor }) => bgColor || '#3551de'};
+    }
 `;
 
 const BtnText = styled.span`
