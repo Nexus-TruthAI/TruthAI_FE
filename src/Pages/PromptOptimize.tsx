@@ -25,6 +25,8 @@ const Wrapper = styled.div`
 const CrossCheckWrapper = styled.div`
     display: flex;
     flex-direction: row;
+    padding-top: 4rem;
+
 `
 const MainWrapper = styled.div`
     flex: 1;
