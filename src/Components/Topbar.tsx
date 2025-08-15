@@ -93,13 +93,16 @@ const LoginButton = styled.button`
     }
 `;
 
-const Topbar = ({ profileImage }: { profileImage: string | null }) => {
+const Topbar = () => {
     const location = useLocation();
     const isQuestionPage = location.pathname === '/question';
     const isFeatChoicePage = location.pathname === '/featchoice';
     const isMainPage = location.pathname === '/mainpage';
     const navigate = useNavigate();
     const isLoggedIn = () => !!localStorage.getItem("accessToken");
+    
+    // localStorage에서 프로필 이미지 자동으로 가져오기
+    const profileImage = localStorage.getItem("profileImage");
 
     return (
         <Wrapper>

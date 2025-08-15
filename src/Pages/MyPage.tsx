@@ -180,7 +180,7 @@ const MyPage = () => {
 
     return (
         <Wrapper>
-            <Topbar profileImage={profileImage}/>
+            <Topbar/>
             <MainWrapper>
                 <MainText>내 프로필</MainText>
                 <ProfileWrapper>
