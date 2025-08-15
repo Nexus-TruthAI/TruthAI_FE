@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import Background from "../Icons/BackgroundBasic.png";
 import Topbar from "../Components/Topbar";
+import RoundArrowBtn from "../Components/RoundArrowBtn";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -14,51 +15,118 @@ const Wrapper = styled.div`
 `
 
 const MainWrapper = styled.div`
-    margin: 0;
-    margin-left: 11.25rem;
-    padding: 0;
+    margin: 0 4rem;
+    padding: 4rem 0 0 0;
     height: calc(100vh - 4rem);
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: flex-start;
 `
 const MainText = styled.div`
-    font-size: 54px;
+    font-size: 40px;
     font-weight: 800;
     color: #fff;
 `
 
 const ProfileWrapper = styled.div`
-    margin-top: 2.5rem;
     font-size: 28px;
     font-weight: 600;
     color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.5rem;
+`
+
+const Profile = styled.div`
+    font-size: 2rem;
+    font-weight: 800;
+`
+
+const UserName = styled.div`
+    font-size: 1rem;
+    font-weight: 400;
+`
+
+const ProfileImage = styled.div`
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    background-color: #888;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #fff;
+    transition: all 0.2s ease;
+    
+    &:hover {
+        transform: scale(1.05);
+    }
+`
+
+const ProfileImageInput = styled.input`
+    display: none;
+`
+
+const SubWrapper = styled.div`
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+`
+
+const BoxWrapper = styled.div`
+    width: 67.5rem;
+    height: 120%;
+    background-color: rgb(255, 255, 255, 0.1);
+    color: #fff;
+    border-radius: 10px;
+    padding: 1rem 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+`
+
+const Title = styled.div`
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 1rem;
+`
+
+const SubTitle = styled.div`
+    font-size: 1rem;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+    color: #ccc;
 `
 
 const BodyText = styled.div`
-    font-size: 20px;
-    font-weight: 500;
-    color: #fff;
-    margin-top: 1rem;
-    white-space: pre-line;
-
+    font-size: 14px;
+    font-weight: 400;
+    color: #ccc;
+    line-height: 1.5;
 `
 
-const ActionButton = styled.button`
-    margin-top: 2.7rem;
-    padding: 1rem 2rem;
-    background-color: #F5F5F5;
-    color: #333;
+const SubscribeButton = styled.button`
+    background-color: #3B5AF7;
+    color: #fff;
     border: none;
-    border-radius: 100px;
+    padding: 1rem 2rem;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
+    align-self: center;
+    margin-top: 1rem;
+    width: 100%;
 
     &:hover {
-        background-color: #E8E8E8;
+        background-color: #3551de;
     }
 
     &:focus {
@@ -66,21 +134,101 @@ const ActionButton = styled.button`
     }
 `
 
+const LinkSection = styled.div`
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+`
+
+const LinkItem = styled.div<{ $isRed?: boolean }>`
+    font-size: 16px;
+    font-weight: 500;
+    color: ${props => props.$isRed ? '#ff6b6b' : '#fff'};
+    cursor: pointer;
+    transition: color 0.2s ease;
+
+    &:hover {
+        color: ${props => props.$isRed ? '#ff5252' : '#C2CCFD'};
+    }
+`
 
 const MyPage = () => {
+    const [profileImage, setProfileImage] = React.useState<string | null>(null);
+
+    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const result = e.target?.result as string;
+                setProfileImage(result);
+                localStorage.setItem('profileImage', result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    React.useEffect(() => {
+        const savedImage = localStorage.getItem('profileImage');
+        if (savedImage) {
+            setProfileImage(savedImage);
+        }
+    }, []);
+
     return (
         <Wrapper>
             <Topbar/>
             <MainWrapper>
                 <MainText>내 프로필</MainText>
-                <ProfileWrapper></ProfileWrapper>
-                <BodyText>{`불편했던 점이나 바라는 기능, 개선 아이디어가 있다면 언제든지 남겨주세요.
-                여러분의 피드백이 더 나은 서비스를 만듭니다.
-                `}
-                </BodyText>
-                <ActionButton onClick={() => window.open('https://github.com/Nexus-TruthAI/TruthAI_FE')} >
-                구글폼에 의견 남기기 {'>'}
-                </ActionButton>
+                <ProfileWrapper>
+                    <ProfileImageInput
+                        type="file"
+                        id="profile-image"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                    />
+                    <label htmlFor="profile-image">
+                        <ProfileImage>
+                            {profileImage ? (
+                                <img 
+                                    src={profileImage} 
+                                    alt="프로필" 
+                                    style={{ 
+                                        width: '100%', 
+                                        height: '100%', 
+                                        borderRadius: '50%',
+                                        objectFit: 'cover'
+                                    }} 
+                                />
+                            ) : (
+                                '프로필'
+                            )}
+                        </ProfileImage>
+                    </label>
+                    <div>
+                        <Profile>사용자</Profile>
+                        <UserName>user@gmail.com</UserName>
+                    </div>
+                    <RoundArrowBtn fontSize="16px">로그아웃</RoundArrowBtn>
+                </ProfileWrapper>
+                <SubWrapper>
+                    <BoxWrapper>
+                        <div>
+                            <Title>나의 정기구독</Title>
+                            <SubTitle>지금 TruthAI 정기구독을 시작하세요.</SubTitle>
+                            <BodyText>정기구독으로 더 많은 프롬프트를 입력하고, AI 응답을 똑똑하게 분석할 수 있어요.</BodyText>
+                        </div>
+                        <SubscribeButton>구독 상품 둘러보기</SubscribeButton>
+                    </BoxWrapper>
+                    <LinkSection>
+                        <LinkItem>구독 관리</LinkItem>
+                        <LinkItem>문의하기</LinkItem>
+                        <LinkItem $isRed>탈퇴하기</LinkItem>
+                    </LinkSection>
+                </SubWrapper>
 
             </MainWrapper>
         </Wrapper>

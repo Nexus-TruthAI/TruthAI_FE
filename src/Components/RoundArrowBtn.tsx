@@ -27,9 +27,9 @@ const Btn = styled.button<BtnProps>`
     }
 `;
 
-const BtnText = styled.span`
-    font-size: 20px;
-    font-weight: 0;
+const BtnText = styled.span<{ $fontSize?: string }>`
+    font-size: ${({ $fontSize }) => $fontSize || '20px'};
+    font-weight: 400;
     margin: 0;
     padding: 0;
     margin-right: 0.1rem;
@@ -42,16 +42,18 @@ const ArrowIcon = styled.img`
 
 interface RoundArrowBtnProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     bgColor?: string;
+    fontSize?: string;
 }
 
 export default function RoundArrowBtn({
     children,
     bgColor,
+    fontSize,
     ...props
 }: React.PropsWithChildren<RoundArrowBtnProps>) {
     return (
         <Btn bgColor={bgColor} {...props}>
-            <BtnText>{children}</BtnText>
+            <BtnText $fontSize={fontSize}>{children}</BtnText>
             <ArrowIcon src={ArrowRight} alt="arrow" />
         </Btn>
     );

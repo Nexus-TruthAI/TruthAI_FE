@@ -27,7 +27,7 @@ const Wrapper = styled.div`
 
 const MainWrapper = styled.div`
     margin: 0;
-    padding: 0;
+    padding: 4rem 0 0 0;
     height: calc(100vh - 4rem);
     display: flex;
     flex-direction: column;
@@ -35,7 +35,6 @@ const MainWrapper = styled.div`
     align-items: center;
     scroll-snap-align: start;
     position: relative;
-    padding-top: 4rem;
 `
 const MainText = styled.div`
     display: flex;

@@ -20,7 +20,7 @@ const Wrapper = styled.div`
 const MainWrapper = styled.div`
     margin: 0;
     padding: 0;
-    height: calc(100vh - 4rem);
+    height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
