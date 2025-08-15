@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
 const Wrapper = styled.div`
@@ -71,6 +72,7 @@ const CrossChecktWrapper = styled.div`
 const Sidebar = () => {
     const prompt_text = "새로운 프롬프트 생성하기 >";
     const cross_text = "새로 AI 교차검증하기 >";
+    const navigate = useNavigate();
 
     const prompts = Array(5).fill("최근 보고서 요약 요청").map((text, i) => `${text} ${i + 1}`);
 
@@ -85,7 +87,7 @@ const Sidebar = () => {
                         ))}
                     </PromptList>
                 </PromptListContainer>
-                <NewBtn>{prompt_text}</NewBtn>
+                <NewBtn onClick={() => navigate('/promptopt')}>{prompt_text}</NewBtn>
             </PromptWrapper>
             <CrossChecktWrapper>
                 <TitleText>교차검증</TitleText>
@@ -96,7 +98,7 @@ const Sidebar = () => {
                         ))}
                     </PromptList>
                 </PromptListContainer>
-                <NewBtn>{cross_text}</NewBtn>
+                <NewBtn onClick={() => navigate('/crosscheckq')}>{cross_text}</NewBtn>
             </CrossChecktWrapper>
         </Wrapper>
     );

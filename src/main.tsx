@@ -13,6 +13,8 @@ import CrossCheckL from './Pages/CrossCheckL.tsx'
 import CrossCheckA from './Pages/CrossCheckA.tsx'
 import Question from './Pages/Question.tsx'
 import FactCheck from './Pages/FactCheck.tsx'
+import MyPage from './Pages/MyPage.tsx'
+import MainPage from './Pages/MainPage.tsx'
 
 
 createRoot(document.getElementById('root')!).render(
@@ -29,6 +31,8 @@ createRoot(document.getElementById('root')!).render(
         <Route path='/crosschecka' element={<CrossCheckA/>}/>
         <Route path='/question' element={<Question/>}/>
         <Route path='/factcheck' element={<FactCheck/>}/>
+        <Route path='/mypage' element={<MyPage/>}/>
+        <Route path='/mainpage' element={<MainPage/>}/>
       </Routes>
     </BrowserRouter>
   </StrictMode>,

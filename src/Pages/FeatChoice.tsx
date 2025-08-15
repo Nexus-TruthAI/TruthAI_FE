@@ -5,6 +5,7 @@ import Topbar from "../Components/Topbar";
 import Background from '../Icons/BackgroundBasic.png';
 import ABCDIcon from "../Icons/ABCDIcon.png";
 import RobotIcon from "../Icons/RobotIcon.png";
+import { useNavigate } from "react-router-dom";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -77,6 +78,7 @@ const ChoiceText = styled.div`
     font-weight: 600;
     white-space: pre-line;
     margin-bottom: 3.75rem;
+    text-align: center;
 `
 
 const FeatChoice = () => {
@@ -90,6 +92,8 @@ AI 모델로부터 가장 정확하고 관련성 높은 결과를 얻을 수 있
 다양한 플랫폼의 응답을 직관적으로 평가하고, 모델 간 차이를 한눈에 파악해 
 더 정확한 의사결정을 내릴 수 있습니다.`
 
+    const navigate = useNavigate();
+
     return (
         <Wrapper>
             <Topbar/>
@@ -102,7 +106,7 @@ AI 모델로부터 가장 정확하고 관련성 높은 결과를 얻을 수 있
                         <ChoiceText>
                             {text1}
                         </ChoiceText>
-                        <RoundArrowBtn>사용하기</RoundArrowBtn>
+                        <RoundArrowBtn onClick={() => navigate('/promptopt')}>사용하기</RoundArrowBtn>
                     </ChoiceBox>
                     <ChoiceBox>
                         <TitleImg><img src={RobotIcon}/></TitleImg>
@@ -110,7 +114,7 @@ AI 모델로부터 가장 정확하고 관련성 높은 결과를 얻을 수 있
                         <ChoiceText>
                             {text2}
                         </ChoiceText>
-                        <RoundArrowBtn>사용하기</RoundArrowBtn>
+                        <RoundArrowBtn onClick={() => navigate('/crosscheckq')}>사용하기</RoundArrowBtn>
                     </ChoiceBox>
                 </ChoiceWrapper>
             </MainWrapper>

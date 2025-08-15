@@ -20,11 +20,12 @@ const Wrapper = styled.div`
 const CrossCheckWrapper = styled.div`
     display: flex;
     flex-direction: row;
+    padding-top: 4rem;
 `
 
 const MainWrapper = styled.div`
     margin: 0;
-    min-height: calc(100vh - 4rem);
+    min-height: calc(100vh - 8rem);
     width: calc(100vw - 15.5rem);
     display: flex;
     flex-direction: column;
