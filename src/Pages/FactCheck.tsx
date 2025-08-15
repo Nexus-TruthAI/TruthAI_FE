@@ -64,7 +64,7 @@ const CoreTitle = styled.div`
     font-style: normal;
     font-weight: 600;
     line-height: normal;
-    margin-bottom: 4.5rem;
+    margin-bottom: 1rem;
 `
 const CoreStatement = styled.div`
     color: #FFFFFF;
@@ -273,12 +273,33 @@ const FactCheck = () => {
     { id: 'perplexity', name: 'Perplexity' }
   ];
 
-  const aiResponses = {
-    chatgpt: "ChatGPT의 외부자료",
-    claude: "Claude의 외부자료",
-    gemini: "Gemini의 외부자료",
-    perplexity: "Perplexity의 외부자료"
-  };
+  const mockAiReferences = {
+  "chatgpt": [
+    {
+      title: "AI 윤리 가이드라인 발표",
+      summary: "국제기구에서 AI 윤리에 대한 새 가이드라인을 발표했습니다.",
+      link: "https://example.com/article1"
+    },
+    {
+      title: "자율주행 기술 최신 동향",
+      summary: "최근 연구 결과를 통해 자율주행차의 인식 능력이 향상되었습니다.",
+      link: "https://example.com/article2"
+    },
+    {
+      title: "기후 변화와 AI",
+      summary: "AI 기술이 기후 변화 대응에 어떻게 활용되는지 분석합니다.",
+      link: "https://example.com/article3"
+    }
+  ],
+  "claude": [
+    {
+      title: "AI 의료 영상 분석",
+      summary: "AI가 의료 영상에서 암을 조기 진단하는 연구가 발표되었습니다.",
+      link: "https://example.com/article4"
+    }
+  ],
+  "gemini": [],
+};
 
   // location.state가 변경될 때 activeTab 업데이트
   useEffect(() => {
@@ -372,7 +393,7 @@ const FactCheck = () => {
                 </Tab>
               ))}
             </TabContainer>
-            <ExternalReference activeTab={activeTab} aiReferences={aiResponses} />
+            <ExternalReference activeTab={activeTab} aiReferences={mockAiReferences} />
           </div>
         </MainWrapper>
 
