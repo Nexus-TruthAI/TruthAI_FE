@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import ArrowRight from "../Icons/ArrowRight.svg";
 
 interface BtnProps {
     bgColor?: string;
@@ -8,12 +7,12 @@ interface BtnProps {
 const Btn = styled.button<BtnProps>`
     margin: 0;
     padding: 0 1rem;
-    width: 8rem;
-    height: 3rem;
-    background-color: ${({ bgColor }) => bgColor || '#3B5AF7'};
+    width: 5.6rem;
+    height: 2.25rem;
+    background-color: rgb(255, 255, 255, 0.2);
     color: #fff;
     border: none;
-    border-radius: 5.5rem;
+    border-radius: 0.6rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -23,38 +22,31 @@ const Btn = styled.button<BtnProps>`
     }
 
     &:hover {
-        background-color: ${({ bgColor }) => bgColor || '#3551de'};
+        background-color: rgb(255, 255, 255, 0.3);
     }
 `;
 
 const BtnText = styled.span<{ $fontSize?: string }>`
-    font-size: ${({ $fontSize }) => $fontSize || '20px'};
+    font-size: 12px;
     font-weight: 400;
     margin: 0;
     padding: 0;
     margin-right: 0.1rem;
 `;
 
-const ArrowIcon = styled.img`
-    width: 1.5rem;
-    height: 1.5rem;
-`;
-
-interface RoundArrowBtnProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface NewBtnProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     bgColor?: string;
     fontSize?: string;
 }
 
-export default function RoundArrowBtn({
+export default function NewBtn({
     children,
-    bgColor,
     fontSize,
     ...props
-}: React.PropsWithChildren<RoundArrowBtnProps>) {
+}: React.PropsWithChildren<NewBtnProps>) {
     return (
-        <Btn bgColor={bgColor} {...props}>
+        <Btn {...props}>
             <BtnText $fontSize={fontSize}>{children}</BtnText>
-            <ArrowIcon src={ArrowRight} alt="arrow" />
         </Btn>
     );
 }
