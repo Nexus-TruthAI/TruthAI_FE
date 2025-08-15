@@ -100,6 +100,7 @@ const Topbar = () => {
     const isMainPage = location.pathname === '/mainpage';
     const navigate = useNavigate();
     const isLoggedIn = () => !!localStorage.getItem("accessToken");
+    const isMyFolderPage = location.pathname === '/myfolderpl' || location.pathname === '/myfoldercl';
     
     // localStorage에서 프로필 이미지 자동으로 가져오기
     const profileImage = localStorage.getItem("profileImage");
@@ -114,7 +115,7 @@ const Topbar = () => {
             <NavigationWrapper>
                 <NavItem $isActive={isMainPage} onClick={() => navigate('/mainpage')}>서비스 소개</NavItem>
                 <NavItem $isActive={isFeatChoicePage} onClick={() => navigate('/featchoice')}>AI 기능 선택</NavItem>
-                <NavItem>내 폴더</NavItem>
+                <NavItem $isActive={isMyFolderPage} onClick={() => navigate('/myfolderpl')}>내 폴더</NavItem>
                 <NavItem $isActive={isQuestionPage} onClick={() => navigate('/question')}>문의하기</NavItem>
             </NavigationWrapper>
         </LeftGroup>

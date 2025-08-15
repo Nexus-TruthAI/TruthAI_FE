@@ -15,6 +15,8 @@ import Question from './Pages/Question.tsx'
 import FactCheck from './Pages/FactCheck.tsx'
 import MyPage from './Pages/MyPage.tsx'
 import MainPage from './Pages/MainPage.tsx'
+import MyFolderPL from './Pages/MyFolderPL.tsx'
+import MyFolderCL from './Pages/MyFolderCL.tsx'
 
 
 createRoot(document.getElementById('root')!).render(
@@ -33,6 +35,8 @@ createRoot(document.getElementById('root')!).render(
         <Route path='/factcheck' element={<FactCheck/>}/>
         <Route path='/mypage' element={<MyPage/>}/>
         <Route path='/mainpage' element={<MainPage/>}/>
+        <Route path='/myfolderpl' element={<MyFolderPL/>}/>
+        <Route path='/myfoldercl' element={<MyFolderCL/>}/>
       </Routes>
     </BrowserRouter>
   </StrictMode>,
