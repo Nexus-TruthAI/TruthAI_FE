@@ -54,12 +54,23 @@ const NavItem = styled.li<{ $isActive?: boolean }>`
     }
 `;
 
-const ProfileWrapper = styled.div`
+const ProfileWrapper = styled.div<{ $profileImage?: string | null }>`
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background-color: #888;
+    background-color: ${props => props.$profileImage ? 'transparent' : '#888'};
     flex-shrink: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
 `;
 
 const LoginButton = styled.button`
@@ -82,7 +93,7 @@ const LoginButton = styled.button`
     }
 `;
 
-const Topbar = () => {
+const Topbar = ({ profileImage }: { profileImage: string | null }) => {
     const location = useLocation();
     const isQuestionPage = location.pathname === '/question';
     const isFeatChoicePage = location.pathname === '/featchoice';
@@ -105,8 +116,17 @@ const Topbar = () => {
             </NavigationWrapper>
         </LeftGroup>
         {isLoggedIn() ? (
-            <ProfileWrapper />
-        ) : (
+                <ProfileWrapper 
+                $profileImage={profileImage}
+                onClick={() => navigate('/mypage')}
+            >
+                {profileImage ? (
+                    <img src={profileImage} alt="프로필" />
+                ) : (
+                    <span style={{ color: '#fff', fontSize: '16px' }}>👤</span>
+                )}
+            </ProfileWrapper>
+    ) : (
             <LoginButton onClick={() => navigate('/login')}>Log In</LoginButton>
         )}
         </Wrapper>
