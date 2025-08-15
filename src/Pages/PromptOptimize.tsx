@@ -22,7 +22,7 @@ const Wrapper = styled.div`
     background-size: cover;
     background-position: center;
 `
-const CrossCheckWrapper = styled.div`
+const PromptOptWrapper = styled.div`
     display: flex;
     flex-direction: row;
     padding-top: 4rem;
@@ -218,7 +218,7 @@ const PromptOptimize = () => {
     <Wrapper>
       {showAlertModal && <AlertModal onClose={() => setShowAlertModal(false)} />}
       <Topbar />
-        <CrossCheckWrapper>
+        <PromptOptWrapper>
             <Sidebar />
             {isLoading ? (
               <MainWrapper>
@@ -290,7 +290,7 @@ const PromptOptimize = () => {
                 )}
               </MainWrapper>
             )}
-          </CrossCheckWrapper>
+          </PromptOptWrapper>
         </Wrapper>
     );
 }
