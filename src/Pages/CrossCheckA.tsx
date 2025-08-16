@@ -5,7 +5,9 @@ import Topbar from "../Components/Topbar";
 import Sidebar from "../Components/Sidebar";
 import { useLocation, useNavigate } from "react-router-dom";
 import CopyIcon from "../Icons/Copy.svg";
-import BookmarkIcon from "../Icons/Bookmark.svg";
+import BookmarkIcon from "../Icons/BookmarkEmpty.png";
+import BookmarkFillIcon from "../Icons/BookmarkFill.png";
+import BookmarkModal from "../Components/BookmarkModal";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -31,7 +33,7 @@ const MainWrapper = styled.div`
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    padding: 2rem;
+    padding: 5rem;
 `
 
 const MainText = styled.div`
@@ -132,6 +134,11 @@ const IconButton = styled.button`
         width: 1.25rem;
         height: 1.25rem;
         filter: brightness(0) invert(1);
+    }
+
+    img.bookmark {
+        width: 1.5rem;
+        height: 1.5rem;
     }
 
     &:focus {
@@ -257,6 +264,25 @@ const CrossCheckA = () => {
     // 선택된 AI 중 첫 번째를 기본 탭으로 설정
     const [activeTab, setActiveTab] = useState('chatgpt');
     const [showModal, setShowModal] = useState(false);
+    const [showBookmarkModal, setShowBookmarkModal] = useState(false);
+    const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+    
+    // 각 AI별 북마크 상태
+    const [bookmarkStates, setBookmarkStates] = useState({
+        chatgpt: false,
+        claude: false,
+        gemini: false,
+        perplexity: false
+    });
+
+    // 임시 폴더 데이터 (백엔드에서 받아올 예정)
+    const tempFolders = [
+        "프롬프트 폴더 1",
+        "AI 교차검증 폴더",
+        "개인 프로젝트",
+        "학습 자료",
+        "아이디어 저장소"
+    ];
 
     // location.state가 변경될 때 activeTab 업데이트
     useEffect(() => {
@@ -347,6 +373,28 @@ AI 보안·프라이버시 보호 강화
         navigate('/crosscheckq');
     };
 
+    const handleBookmarkClick = () => {
+        setShowBookmarkModal(true);
+    };
+
+    const handleBookmarkSave = () => {
+        if (selectedFolder) {
+            // 북마크 상태 업데이트
+            setBookmarkStates(prev => ({
+                ...prev,
+                [activeTab]: true
+            }));
+            setShowBookmarkModal(false);
+            setSelectedFolder(null);
+            alert(`${selectedFolder}에 북마크가 저장되었습니다.`);
+        }
+    };
+
+    const handleBookmarkModalClose = () => {
+        setShowBookmarkModal(false);
+        setSelectedFolder(null);
+    };
+
     const handleCopyClick = async () => {
         const currentResponse = aiResponses[activeTab as keyof typeof aiResponses];
         if (currentResponse && currentResponse !== '생성된 결과가 없습니다.') {
@@ -386,8 +434,12 @@ AI 보안·프라이버시 보호 강화
                             </ContentText>
                             {aiResponses[activeTab as keyof typeof aiResponses] !== '생성된 결과가 없습니다.' && (
                                 <IconContainer>
-                                    <IconButton>
-                                        <img src={BookmarkIcon} alt="Bookmark" />
+                                    <IconButton onClick={handleBookmarkClick}>
+                                        {bookmarkStates[activeTab as keyof typeof bookmarkStates] ? (
+                                            <img src={BookmarkFillIcon} alt="Bookmark" className="bookmark" />
+                                        ) : (
+                                            <img src={BookmarkIcon} alt="Bookmark" className="bookmark" />
+                                        )}
                                     </IconButton>
                                     <IconButton onClick={handleCopyClick}>
                                         <img src={CopyIcon} alt="Copy" className="copy" />
@@ -421,6 +473,16 @@ AI 보안·프라이버시 보호 강화
                         </ModalButtons>
                     </Modal>
                 </ModalOverlay>
+            )}
+
+            {showBookmarkModal && (
+                <BookmarkModal
+                    folders={tempFolders}
+                    onClose={handleBookmarkModalClose}
+                    onSave={handleBookmarkSave}
+                    selectedFolder={selectedFolder}
+                    setSelectedFolder={setSelectedFolder}
+                />
             )}
         </Wrapper>  
     );

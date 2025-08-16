@@ -305,6 +305,35 @@ const MyFolderPL = () => {
     const [showDropdown, setShowDropdown] = useState(false);
     const navigate = useNavigate();
     
+    // 임시 프롬프트 데이터 (백엔드에서 받아올 예정)
+    const tempPrompts = [
+        {
+            id: 1,
+            title: "인공지능 트렌드 요약",
+            date: "3시간 전"
+        },
+        {
+            id: 2,
+            title: "빅데이터 분석 단계 설명",
+            date: "2일 전"
+        },
+        {
+            id: 3,
+            title: "머신러닝과 딥러닝 설명 및 차이점",
+            date: "1달 전"
+        },
+        {
+            id: 4,
+            title: "자연어 처리 기술 동향",
+            date: "1주일 전"
+        },
+        {
+            id: 5,
+            title: "AI 윤리와 책임성",
+            date: "2주일 전"
+        }
+    ];
+    
     useEffect(() => {
         console.log("showDropdown: ", showDropdown);
     }, [showDropdown]);
@@ -345,6 +374,10 @@ const MyFolderPL = () => {
         alert("폴더 생성됨");
     }
 
+    const handlePromptClick = (promptId: number) => {
+        navigate(`/myfolder/${promptId}`);
+    };
+
     return (
         <Wrapper>
             <Topbar />
@@ -378,18 +411,16 @@ const MyFolderPL = () => {
                                 </DropdownMenu>
                             )}
                             
-                            <PromptItem>
-                                <PromptTitle>인공지능 트렌드 요약</PromptTitle>
-                                <PromptDate>3시간 전</PromptDate>
-                            </PromptItem>
-                            <PromptItem>
-                                <PromptTitle>빅데이터 분석 단계 설명</PromptTitle>
-                                <PromptDate>2일 전</PromptDate>
-                            </PromptItem>
-                            <PromptItem>
-                                <PromptTitle>머신러닝과 딥러닝 설명 및 차이점</PromptTitle>
-                                <PromptDate>1달 전</PromptDate>
-                            </PromptItem>
+                            {tempPrompts.map((prompt) => (
+                                <PromptItem 
+                                    key={prompt.id} 
+                                    onClick={() => handlePromptClick(prompt.id)}
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    <PromptTitle>{prompt.title}</PromptTitle>
+                                    <PromptDate>{prompt.date}</PromptDate>
+                                </PromptItem>
+                            ))}
                         </PromptList>
 
                     </CenterWrapper>
