@@ -17,6 +17,7 @@ import MyPage from './Pages/MyPage.tsx'
 import MainPage from './Pages/MainPage.tsx'
 import MyFolderPL from './Pages/MyFolderPL.tsx'
 import MyFolderCL from './Pages/MyFolderCL.tsx'
+import MyFolderPD from './Pages/MyFolderPD.tsx'
 
 
 createRoot(document.getElementById('root')!).render(
@@ -37,6 +38,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path='/mainpage' element={<MainPage/>}/>
         <Route path='/myfolderpl' element={<MyFolderPL/>}/>
         <Route path='/myfoldercl' element={<MyFolderCL/>}/>
+        <Route path='/myfolder/:id' element={<MyFolderPD/>}/>
       </Routes>
     </BrowserRouter>
   </StrictMode>,

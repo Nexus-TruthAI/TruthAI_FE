@@ -100,7 +100,7 @@ const Topbar = () => {
     const isMainPage = location.pathname === '/mainpage';
     const navigate = useNavigate();
     const isLoggedIn = () => !!localStorage.getItem("accessToken");
-    const isMyFolderPage = location.pathname === '/myfolderpl' || location.pathname === '/myfoldercl';
+    const isMyFolderPage = location.pathname.startsWith('/myfolder');
     
     // localStorage에서 프로필 이미지 자동으로 가져오기
     const profileImage = localStorage.getItem("profileImage");
