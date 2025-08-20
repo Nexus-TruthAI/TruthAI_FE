@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, redirect } from "react-router-dom";
 import { useEffect } from "react";
 import styled from "styled-components";
 
@@ -25,19 +25,25 @@ const OAuthCallback = () => {
 
     const fetchLogin = async () => {
       try {
-        // token 으로 인가 코드 전달
         console.log("로그인 요청 중...");
-        const res = await axios.get("http://3.36.75.39:8080/auth/auth/login", {
-          params: { token: code },
-          responseType: "text", // JWT가 문자열일 가능성 대비
-        });
+
+        // 인가 코드 POST로 요청
+        const res = await axios.post('/auth/login', {
+          token: code,
+          redirectUri: 'http://localhost:5173/oauth/callback', // 필요하면
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          responseType: 'text',
+        })
 
         console.log("✅ 백엔드 응답 (JWT):", res.data);
 
-        const jwt = res.data; // JWT 문자열
+        const jwt = res.data;
         if (jwt) {
-          localStorage.setItem("token", jwt); // 토큰 저장
-          navigate("/feat-choice");           // 기능 선택 페이지로 이동
+          localStorage.setItem("token", jwt); // 인가코드 저장
+          navigate("/FeatChoice"); // 기능 선택 페이지로 이동
         } else {
           console.warn("토큰 없음", res.data);
         }
@@ -47,7 +53,7 @@ const OAuthCallback = () => {
     };
 
     fetchLogin();
-  }, [code]);
+  }, [code, navigate]);
 
   return (
     <Wrapper>
