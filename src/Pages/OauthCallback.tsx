@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useSearchParams, useNavigate, redirect } from "react-router-dom";
+import { useSearchParams, useNavigate} from "react-router-dom";
 import { useEffect } from "react";
 import styled from "styled-components";
 
@@ -40,10 +40,14 @@ const OAuthCallback = () => {
 
         console.log("✅ 백엔드 응답 (JWT):", res.data);
 
-        const jwt = res.data;
-        if (jwt) {
-          localStorage.setItem("token", jwt); // 인가코드 저장
-          navigate("/FeatChoice"); // 기능 선택 페이지로 이동
+        const { accessToken, refreshToken } = res.data;
+
+        if (accessToken && refreshToken) {
+          // 세션 스토리지에 저장
+          sessionStorage.setItem('accessToken', accessToken);
+          sessionStorage.setItem('refreshToken', refreshToken);
+
+          navigate("/FeatChoice");
         } else {
           console.warn("토큰 없음", res.data);
         }
