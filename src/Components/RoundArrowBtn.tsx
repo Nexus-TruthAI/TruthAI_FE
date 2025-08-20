@@ -3,13 +3,14 @@ import ArrowRight from "../Icons/ArrowRight.svg";
 
 interface BtnProps {
     bgColor?: string;
+    height?: string;
 }
 
 const Btn = styled.button<BtnProps>`
     margin: 0;
     padding: 0 1rem;
     width: 8rem;
-    height: 3rem;
+    height: ${({ height }) => height || '3rem'};
     background-color: ${({ bgColor }) => bgColor || '#3B5AF7'};
     color: #fff;
     border: none;
@@ -43,18 +44,22 @@ const ArrowIcon = styled.img`
 interface RoundArrowBtnProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     bgColor?: string;
     fontSize?: string;
+    showArrow?: boolean;
+    height?: string;
 }
 
 export default function RoundArrowBtn({
     children,
     bgColor,
     fontSize,
+    showArrow = true,
+    height,
     ...props
 }: React.PropsWithChildren<RoundArrowBtnProps>) {
     return (
-        <Btn bgColor={bgColor} {...props}>
+        <Btn bgColor={bgColor} height={height} {...props}>
             <BtnText $fontSize={fontSize}>{children}</BtnText>
-            <ArrowIcon src={ArrowRight} alt="arrow" />
+            {showArrow && <ArrowIcon src={ArrowRight} alt="arrow" />}
         </Btn>
     );
 }
