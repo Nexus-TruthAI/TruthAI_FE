@@ -4,6 +4,9 @@ import Background from "../Icons/BackgroundBasic.png";
 import Topbar from "../Components/Topbar";
 import RoundArrowBtn from "../Components/RoundArrowBtn";
 import { useNavigate } from "react-router-dom";
+import * as jwt_decode from "jwt-decode";
+
+import api from "../api";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -246,13 +249,19 @@ const ModalButton = styled.button`
         }
     }
 `
-
 const Persona = styled.div`
     width: 100%;
     font-size: 14px;
     font-weight: 600;
     color: #CECECE;
 `
+
+interface JwtPayload {
+  name?: string;
+  email?: string;
+  picture?: string;
+}
+
 
 
 const MyPage = () => {
@@ -261,7 +270,8 @@ const MyPage = () => {
     const [showProfileEditModal, setShowProfileEditModal] = React.useState(false);
     const [userInfo, setUserInfo] = React.useState('');
     const [persona, setPersona] = React.useState('AI가 필요한 사람');
-    
+    const [userName, setUserName] = React.useState('');
+
     const navigate = useNavigate();
 
     const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -305,6 +315,19 @@ const MyPage = () => {
         setShowModal(false);
     };
 
+    const handleLogout = async () => {
+        try {
+            await api.post("/auth/logout");
+            // 클라이언트 측 토큰 제거
+            sessionStorage.removeItem("accessToken");
+            sessionStorage.removeItem("refreshToken");
+            // 메인페이지나 로그인 페이지로 이동
+            navigate("/login");
+        } catch (error) {
+            console.error("로그아웃 실패", error);
+        }
+    };
+
     React.useEffect(() => {
         const savedImage = localStorage.getItem('profileImage');
         if (savedImage) {
@@ -317,6 +340,29 @@ const MyPage = () => {
             setPersona(savedUserInfo);
         }
     }, []);
+
+    // MyPage 내부 useEffect 예시
+    /*React.useEffect(() => {
+        const token = sessionStorage.getItem("accessToken");
+        if (!token) {
+            // 토큰 없으면 로그인 페이지로 이동
+            navigate("/login");
+            return;
+        }
+
+        try {
+            const decoded = jwt_decode<JwtPayload>(token);
+            console.log("디코딩된 JWT payload:", decoded);
+
+            setUserName(decoded.name || "");
+            setUserInfo(decoded.email || "");
+            setProfileImage(decoded.picture || null);
+
+        } catch (err) {
+            console.error("JWT 디코딩 실패", err);
+            navigate("/login"); // 디코딩 실패 시 로그인으로
+        }
+    }, []); */
 
     return (
         <Wrapper>
@@ -367,7 +413,7 @@ const MyPage = () => {
                     <LinkSection>
                         <LinkItem>구독 관리</LinkItem>
                         <LinkItem onClick={() => {navigate('/question')}}>문의하기</LinkItem>
-                        <LinkItem onClick={() => {}}>로그아웃</LinkItem>
+                        <LinkItem onClick={() => {handleLogout()}}>로그아웃</LinkItem>
                         <LinkItem onClick={() => {}} $isRed>탈퇴하기</LinkItem>
                     </LinkSection>
                 </SubWrapper>
