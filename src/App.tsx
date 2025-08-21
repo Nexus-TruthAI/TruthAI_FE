@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./Pages/GoogleLogin";
 import FeatChoicePage from "./Pages/FeatChoice";
 import OAuthCallbackPage from "./Pages/OauthCallback";

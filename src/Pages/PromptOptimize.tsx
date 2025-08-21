@@ -74,8 +74,7 @@ const PromptWrapper = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
-`;
-
+`
 const OptPrompt = styled.div`
   width: 100%;
   height: 10rem;
@@ -105,14 +104,12 @@ const OptPrompt = styled.div`
       outline: none;
   }
 `
-
 const ScrollArea = styled.div`
   width: 100%;
   height: 9rem;
   overflow-y: auto;
   margin-bottom: 0.5rem; // 버튼과 간격
-`;
-
+`
 const PromptInput = styled.textarea`
   font-family: 'SUIT';
   width: 100%;
@@ -155,12 +152,19 @@ const SendBtn = styled.img`
     width: 2.2rem;
     height: 2.2rem;
     cursor: pointer;
-`;
+    &:hover {
+        transform: scale(1.1);
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
+`
 const IconBtn = styled.img`
     width: 1.5rem;
     height: 1.5rem;
     cursor: pointer;
-`;
+`
 const ExampleWrapper = styled.div`
     display: flex;
     flex-direction: row;
