@@ -3,6 +3,8 @@ import { useSearchParams, useNavigate} from "react-router-dom";
 import { useEffect } from "react";
 import styled from "styled-components";
 
+import api from "../api";
+
 
 const Wrapper = styled.div`
   width: 100vw;
@@ -28,14 +30,13 @@ const OAuthCallback = () => {
         console.log("로그인 요청 중...");
 
         // 인가 코드 POST로 요청
-        const res = await axios.post('/auth/login', {
+        const res = await api.post('/auth/login', {
           token: code,
           redirectUri: 'http://localhost:5173/oauth/callback', // 필요하면
         }, {
           headers: {
             'Content-Type': 'application/json',
           },
-          responseType: 'text',
         })
 
         console.log("✅ 백엔드 응답 (JWT):", res.data);
