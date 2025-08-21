@@ -10,6 +10,11 @@ export default defineConfig({
         target: 'https://api.truthai.shop',
         changeOrigin: true,
         secure: false,
+      },
+      '/llm-answer': {
+        target: 'https://api.truthai.shop',
+        changeOrigin: true,
+        secure: false,
       }
     }
   }

@@ -5,6 +5,7 @@ import Sidebar from "../Components/Sidebar";
 import Background from "../Icons/BackgroundBasic.png";
 import CircleArrowBtn from "../Icons/CircleArrowBtn.svg";
 import { useNavigate } from "react-router-dom";
+import type { LLMRequest } from "../services/llmService";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -300,7 +301,7 @@ const CrossCheckQ = () => {
         );
     };
 
-    const handleSendClick = () => {
+    const handleSendClick = async () => {
         if (!promptText.trim()) {
             setModalType('noInput');
             setShowModal(true);
@@ -313,17 +314,38 @@ const CrossCheckQ = () => {
             return;
         }
         
-        if (selectedAIs.length === 1) {
-            setModalType('singleAI');
-            setShowModal(true);
-        } else if (selectedAIs.length > 1) {
-            console.log("여러 AI 선택됨");
-            navigate('/crosscheckl', { 
-                state: { 
-                    selectedAIs, 
-                    promptText 
-                } 
-            });
+        try {
+            // API 호출을 위한 요청 데이터 준비 - 모델명을 백엔드가 기대하는 형태로 변환
+            const modelMapping: { [key: string]: string } = {
+                'chatgpt': 'gpt',
+                'claude': 'claude',
+                'gemini': 'gemini',
+                'perplexity': 'perplexity'
+            };
+            
+            const mappedModels = selectedAIs.map(ai => modelMapping[ai] || ai);
+            
+            const request: LLMRequest = {
+                models: mappedModels,
+                question: promptText.trim()
+            };
+
+            if (selectedAIs.length === 1) {
+                setModalType('singleAI');
+                setShowModal(true);
+            } else if (selectedAIs.length > 1) {
+                console.log("여러 AI 선택됨 - API 호출 시작");
+                navigate('/crosscheckl', { 
+                    state: { 
+                        selectedAIs, 
+                        promptText,
+                        request 
+                    } 
+                });
+            }
+        } catch (error) {
+            console.error('Error preparing request:', error);
+            // 에러 처리 (필요시 모달 표시)
         }
     };
 
@@ -331,11 +353,27 @@ const CrossCheckQ = () => {
         setShowModal(false);
         setModalType(null);
         if (modalType === 'singleAI') {
-            console.log("그대로 답변 확인하기 - 다른 페이지로 이동");
+            console.log("그대로 답변 확인하기 - API 요청 시작");
+            
+            // API 호출을 위한 요청 데이터 준비 - 모델명을 백엔드가 기대하는 형태로 변환
+            const modelMapping: { [key: string]: string } = {
+                'chatgpt': 'gpt',
+                'claude': 'claude',
+                'gemini': 'gemini'
+            };
+            
+            const mappedModels = selectedAIs.map(ai => modelMapping[ai] || ai);
+            
+            const request: LLMRequest = {
+                models: mappedModels,
+                question: promptText.trim()
+            };
+            
             navigate('/crosscheckl', { 
                 state: { 
                     selectedAIs, 
-                    promptText 
+                    promptText,
+                    request 
                 } 
             });
         }
@@ -401,18 +439,7 @@ const CrossCheckQ = () => {
                                     </div>
                                     Gemini
                                 </Checkbox>
-                                <Checkbox>
-                                    <input 
-                                        type="checkbox" 
-                                        value="perplexity" 
-                                        checked={selectedAIs.includes("perplexity")}
-                                        onChange={() => handleCheckboxChange("perplexity")}
-                                    />
-                                    <div className="custom-checkbox">
-                                        <div className="checkmark">✓</div>
-                                    </div>
-                                    Perplexity
-                                </Checkbox>
+
                             </ChoiceWrapper>
                         </PromptContainer>
                     </ContentWrapper>

@@ -348,11 +348,11 @@ const MyPage = () => {
                             )}
                         </ProfileImage>
                     </label>
-                                         <div>
-                         <Persona>{persona}</Persona>
-                         <Profile>사용자</Profile>
-                         <UserName>user@gmail.com</UserName>
-                     </div>
+                                            <div>
+                            <Persona>{persona}</Persona>
+                            <Profile>사용자</Profile>
+                            <UserName>user@gmail.com</UserName>
+                        </div>
                     <RoundArrowBtn fontSize="12px" showArrow={false} height="2.5rem" onClick={handleProfileEdit}>내 정보 수정하기 &nbsp; {`>`}</RoundArrowBtn>
                 </ProfileWrapper>
                 <SubWrapper>

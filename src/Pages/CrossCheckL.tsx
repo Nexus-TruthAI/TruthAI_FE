@@ -4,6 +4,8 @@ import Background from "../Icons/BackgroundBasic.png"
 import Topbar from "../Components/Topbar";
 import Sidebar from "../Components/Sidebar";
 import { useLocation, useNavigate } from "react-router-dom";
+import { getLLMAnswers } from "../services/llmService";
+import type { LLMResponse } from "../services/llmService";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -69,11 +71,11 @@ const LoadingBarContainer = styled.div`
     position: relative;
 `
 
-const LoadingBar = styled.div<{ progress: number }>`
+const LoadingBar = styled.div<{ $progress: number }>`
     height: 100%;
     background-color: #C2CCFD;
     border-radius: 4px;
-    width: ${props => props.progress}%;
+    width: ${props => props.$progress}%;
     transition: width 0.3s ease;
 `
 
@@ -84,21 +86,58 @@ const CrossCheckL = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        const fetchAnswers = async () => {
+            try {
+                const { request } = location.state || {};
+                
+                if (!request) {
+                    console.error('No request data found');
+                    navigate('/crosscheckq');
+                    return;
+                }
+
+                console.log('🔄 API 호출 시작 - 선택된 AI:', request.models);
+                
+                // API 호출 시작
+                const responses: LLMResponse[] = await getLLMAnswers(request);
+                
+                console.log('✅ API 응답 완료:', responses);
+                
+                // 로딩 완료 후 CrossCheckA로 이동
+                setLoadingProgress(100); // 100%로 완료
+                setTimeout(() => {
+                    navigate('/crosschecka', { 
+                        state: { 
+                            selectedAIs: location.state?.selectedAIs || [],
+                            promptText: location.state?.promptText || '',
+                            responses 
+                        } 
+                    });
+                }, 800); // 로딩 바가 100%까지 완료되는 것을 보여주기 위해 약간 더 지연
+                
+            } catch (error) {
+                console.error('Error fetching LLM answers:', error);
+                // 에러 발생 시 에러 페이지로 이동하거나 모달 표시
+                // 여기서는 간단히 CrossCheckQ로 돌아가도록 처리
+                setTimeout(() => {
+                    navigate('/crosscheckq');
+                }, 1000);
+            }
+        };
+
+        // 로딩 애니메이션 시작
         const interval = setInterval(() => {
             setLoadingProgress(prev => {
-                if (prev >= 100) {
+                if (prev >= 90) { // 90%까지만 진행
                     clearInterval(interval);
-                    // 로딩 완료 후 CrossCheckA로 이동
-                    setTimeout(() => {
-                        navigate('/crosschecka', { 
-                            state: location.state 
-                        });
-                    }, 500);
-                    return 100;
+                    return 90;
                 }
                 return prev + 2;
             });
         }, 100);
+
+        // API 호출 실행
+        fetchAnswers();
 
         return () => clearInterval(interval);
     }, [navigate, location.state]);
@@ -113,7 +152,7 @@ const CrossCheckL = () => {
                     <ContentWrapper>
                         <WaitText>조금만 기다려 주세요.</WaitText>
                         <LoadingBarContainer>
-                            <LoadingBar progress={loadingProgress} />
+                            <LoadingBar $progress={loadingProgress} />
                         </LoadingBarContainer>
                     </ContentWrapper>
                 </MainWrapper>
