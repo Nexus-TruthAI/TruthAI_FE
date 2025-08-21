@@ -359,7 +359,8 @@ const CrossCheckQ = () => {
             const modelMapping: { [key: string]: string } = {
                 'chatgpt': 'gpt',
                 'claude': 'claude',
-                'gemini': 'gemini'
+                'gemini': 'gemini',
+                'perplexity': 'perplexity'
             };
             
             const mappedModels = selectedAIs.map(ai => modelMapping[ai] || ai);
@@ -438,6 +439,18 @@ const CrossCheckQ = () => {
                                         <div className="checkmark">✓</div>
                                     </div>
                                     Gemini
+                                </Checkbox>
+                                <Checkbox>
+                                    <input 
+                                        type="checkbox" 
+                                        value="perplexity" 
+                                        checked={selectedAIs.includes("perplexity")}
+                                        onChange={() => handleCheckboxChange("perplexity")}
+                                    />
+                                    <div className="custom-checkbox">
+                                        <div className="checkmark">✓</div>
+                                    </div>
+                                    Perplexity
                                 </Checkbox>
 
                             </ChoiceWrapper>

@@ -3,7 +3,7 @@ import styled from "styled-components";
 import Background from "../Icons/BackgroundLong.png"
 import Topbar from "../Components/Topbar";
 import Sidebar from "../Components/Sidebar";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import CopyIcon from "../Icons/Copy.svg";
 import BookmarkIcon from "../Icons/BookmarkEmpty.png";
 import BookmarkFillIcon from "../Icons/BookmarkFill.png";
@@ -258,12 +258,22 @@ const ModalButton = styled.button`
 const CrossCheckA = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { answerId } = useParams(); // URL 파라미터에서 answerId 추출
 
     // 선택된 AI들 (location.state에서 가져오거나 기본값)
     const selectedAIs = location.state?.selectedAIs || [];
     
     // API 응답 데이터
     const responses: LLMResponse[] = location.state?.responses || [];
+    
+    // answerId가 있으면 console에 출력 (나중에 백엔드에서 해당 답변 데이터를 가져올 때 사용)
+    useEffect(() => {
+        if (answerId) {
+            console.log('📁 저장된 답변 ID:', answerId);
+            // TODO: 백엔드에서 answerId로 저장된 답변 데이터를 가져오는 로직
+            // const savedAnswer = await getSavedAnswer(answerId);
+        }
+    }, [answerId]);
     
     // 선택된 AI 중 첫 번째를 기본 탭으로 설정
     const [activeTab, setActiveTab] = useState('chatgpt');
@@ -275,7 +285,8 @@ const CrossCheckA = () => {
     const [bookmarkStates, setBookmarkStates] = useState({
         chatgpt: false,
         claude: false,
-        gemini: false
+        gemini: false,
+        perplexity: false
     });
 
     // 임시 폴더 데이터 (백엔드에서 받아올 예정)
@@ -308,13 +319,17 @@ const CrossCheckA = () => {
             const response = responses.find(r => r.llmModel.toLowerCase() === 'gemini');
             return response ? response.answer : '생성된 결과가 없습니다.';
         })(),
-
+        perplexity: (() => {
+            const response = responses.find(r => r.llmModel.toLowerCase() === 'perplexity');
+            return response ? response.answer : '생성된 결과가 없습니다.';
+        })(),
     };
 
     const tabs = [
         { id: 'chatgpt', name: 'ChatGPT' },
         { id: 'claude', name: 'Claude' },
-        { id: 'gemini', name: 'Gemini' }
+        { id: 'gemini', name: 'Gemini' },
+        { id: 'perplexity', name: 'Perplexity' }
     ];
 
     const handleVerificationClick = () => {
