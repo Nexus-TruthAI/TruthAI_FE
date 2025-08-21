@@ -5,6 +5,7 @@ import OAuthCallbackPage from "./Pages/OauthCallback";
 
 // 로그인 여부 확인 예시
 const isLoggedIn = () => !!localStorage.getItem("accessToken");
+console.log(isLoggedIn());
 
 function App() {
   return (
