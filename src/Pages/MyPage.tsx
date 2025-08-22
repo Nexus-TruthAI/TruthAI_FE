@@ -419,7 +419,7 @@ const MyPage = () => {
                         </ProfileImage>
                     </label>
                                          <div>
-                         <Persona>{persona !== null ? persona : "로딩중..."}</Persona>
+                         <Persona>{persona !== null ? persona : " "}</Persona>
                          <Profile>{userName}</Profile>
                          <UserName>{email}</UserName>
                      </div>

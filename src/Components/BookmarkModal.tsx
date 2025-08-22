@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import { type Folder } from "../services/folderService";
 
 const ModalBackdrop = styled.div`
   position: fixed;
@@ -52,6 +53,25 @@ const FolderCard = styled.div<{ selected: boolean }>`
   cursor: pointer;
   font-weight: 600;
   box-sizing: border-box;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    border-color: ${({ selected }) => (selected ? "#6D8BFF" : "#999")};
+    background: ${({ selected }) => (selected ? "#f0f4ff" : "#f0f0f0")};
+  }
+`;
+
+const FolderName = styled.div`
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.25rem;
+`;
+
+const FolderInfo = styled.div`
+  font-size: 12px;
+  color: #666;
+  font-weight: 400;
 `;
 
 const ButtonGrid = styled.div`
@@ -59,7 +79,6 @@ const ButtonGrid = styled.div`
   width: 100%;
   height: 4.6rem;
 `;
-
 
 const SaveButton = styled.button`
   flex: 1;
@@ -92,13 +111,12 @@ const BookmarkModal = ({
   selectedFolder,  // 선택된 폴더
   setSelectedFolder  // 선택된 폴더 설정 함수
 }: {
-  folders: string[];
+  folders: Folder[];
   onClose: () => void;
   onSave: () => void;
-  selectedFolder: string | null;
-  setSelectedFolder: (folder: string) => void;
+  selectedFolder: Folder | null;
+  setSelectedFolder: (folder: Folder) => void;
 }) => {
-
 
   return (
     <ModalBackdrop>
@@ -107,11 +125,12 @@ const BookmarkModal = ({
         <FolderGrid>
           {folders.map((folder) => (
             <FolderCard
-              key={folder}
-              selected={folder === selectedFolder}
+              key={folder.id}
+              selected={folder.id === selectedFolder?.id}
               onClick={() => setSelectedFolder(folder)}
             >
-              {folder}
+              <FolderName>{folder.originalPrompt}</FolderName>
+              <FolderInfo>{new Date(folder.createdAt).toLocaleDateString()}</FolderInfo>
             </FolderCard>
           ))}
         </FolderGrid>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import Logo from "../Icons/Logo.svg";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -65,11 +65,44 @@ const ProfileWrapper = styled.div<{ $profileImage?: string | null }>`
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    position: relative;
     
     img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+    }
+`;
+
+const ProfileDropdown = styled.div`
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.5rem;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    min-width: 160px;
+    z-index: 1001;
+    overflow: hidden;
+`;
+
+const DropdownItem = styled.div`
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    color: #333;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+    
+    &:hover {
+        background-color: #f5f5f5;
+    }
+    
+    &:first-child {
+        border-bottom: 1px solid #eee;
+        font-weight: 600;
+        color: #666;
     }
 `;
 
@@ -99,11 +132,55 @@ const Topbar = () => {
     const isFeatChoicePage = location.pathname === '/featchoice';
     const isMainPage = location.pathname === '/mainpage';
     const navigate = useNavigate();
-    const isLoggedIn = () => !!localStorage.getItem("accessToken");
+    const isLoggedIn = () => !!sessionStorage.getItem("accessToken");
     const isMyFolderPage = location.pathname.startsWith('/myfolder');
     
-    // localStorage에서 프로필 이미지 자동으로 가져오기
+    // localStorage에서 프로필 이미지와 사용자 이름 가져오기
     const profileImage = localStorage.getItem("profileImage");
+    const userName = localStorage.getItem("userName");
+    
+    // 드롭다운 메뉴 상태
+    const [showDropdown, setShowDropdown] = useState(false);
+    
+    // 로그아웃 처리
+    const handleLogout = () => {
+        // 세션 스토리지와 로컬 스토리지 클리어
+        sessionStorage.removeItem('accessToken');
+        sessionStorage.removeItem('refreshToken');
+        localStorage.removeItem('profileImage');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userEmail');
+        
+        // 드롭다운 닫기
+        setShowDropdown(false);
+        
+        // 메인 페이지로 이동
+        navigate('/mainpage');
+    };
+    
+    // 프로필 클릭 시 드롭다운 토글
+    const handleProfileClick = () => {
+        setShowDropdown(!showDropdown);
+    };
+    
+    // 프로필 이미지 클릭 시 마이페이지로 이동
+    const handleProfileImageClick = (e: React.MouseEvent) => {
+        e.stopPropagation(); // 이벤트 버블링 방지
+        navigate('/mypage');
+    };
+    
+    // 외부 클릭 시 드롭다운 닫기
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Element;
+            if (!target.closest('.profile-wrapper')) {
+                setShowDropdown(false);
+            }
+        };
+        
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     return (
         <Wrapper>
@@ -122,12 +199,22 @@ const Topbar = () => {
         {isLoggedIn() ? (
                 <ProfileWrapper 
                 $profileImage={profileImage}
-                onClick={() => navigate('/mypage')}
+                onClick={handleProfileClick}
+                title={userName ? `${userName}님의 프로필` : '프로필'}
+                className="profile-wrapper"
             >
                 {profileImage ? (
-                    <img src={profileImage} alt="프로필" />
+                    <img src={profileImage} alt="프로필" onClick={handleProfileImageClick} />
                 ) : (
-                    <span style={{ color: '#fff', fontSize: '16px' }}>👤</span>
+                    <span style={{ color: '#fff', fontSize: '16px' }} onClick={handleProfileImageClick}>👤</span>
+                )}
+                
+                {showDropdown && (
+                    <ProfileDropdown>
+                        <DropdownItem>{userName || '사용자'}</DropdownItem>
+                        <DropdownItem onClick={() => navigate('/mypage')}>마이페이지</DropdownItem>
+                        <DropdownItem onClick={handleLogout}>로그아웃</DropdownItem>
+                    </ProfileDropdown>
                 )}
             </ProfileWrapper>
     ) : (

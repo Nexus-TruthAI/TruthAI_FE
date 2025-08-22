@@ -10,6 +10,7 @@ import BookmarkFillIcon from "../Icons/BookmarkFill.png";
 import BookmarkModal from "../Components/BookmarkModal";
 import type { LLMResponse } from "../services/llmService";
 import { usePrompt } from "../Context/PromptContext";
+import { getFolders, type Folder } from "../services/folderService";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -285,8 +286,9 @@ const CrossCheckA = () => {
     const [activeTab, setActiveTab] = useState('chatgpt');
     const [showModal, setShowModal] = useState(false);
     const [showBookmarkModal, setShowBookmarkModal] = useState(false);
-    const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+    const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [folders, setFolders] = useState<Folder[]>([]);
     
     // 각 AI별 북마크 상태
     const [bookmarkStates, setBookmarkStates] = useState({
@@ -296,14 +298,19 @@ const CrossCheckA = () => {
         perplexity: false
     });
 
-    // 임시 폴더 데이터 (백엔드에서 받아올 예정)
-    const tempFolders = [
-        "프롬프트 폴더 1",
-        "AI 교차검증 폴더",
-        "개인 프로젝트",
-        "학습 자료",
-        "아이디어 저장소"
-    ];
+    // 폴더 데이터 가져오기
+    useEffect(() => {
+        const fetchFolders = async () => {
+            try {
+                const folderData = await getFolders();
+                setFolders(folderData);
+            } catch (error) {
+                console.error('폴더 목록 조회 실패:', error);
+            }
+        };
+        
+        fetchFolders();
+    }, []);
 
     // location.state가 변경될 때 activeTab 업데이트
     useEffect(() => {
@@ -435,7 +442,7 @@ const CrossCheckA = () => {
             }));
             setShowBookmarkModal(false);
             setSelectedFolder(null);
-            alert(`${selectedFolder}에 북마크가 저장되었습니다.`);
+            alert(`${selectedFolder?.name}에 북마크가 저장되었습니다.`);
         }
     };
 
@@ -526,7 +533,7 @@ const CrossCheckA = () => {
 
             {showBookmarkModal && (
                 <BookmarkModal
-                    folders={tempFolders}
+                    folders={folders}
                     onClose={handleBookmarkModalClose}
                     onSave={handleBookmarkSave}
                     selectedFolder={selectedFolder}

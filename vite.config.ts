@@ -21,6 +21,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/folder': {
+        target: 'https://api.truthai.shop',
+        changeOrigin: true,
+        secure: false,
+      },
     }
   }
 })
