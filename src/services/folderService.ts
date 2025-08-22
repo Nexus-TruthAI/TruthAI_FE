@@ -2,7 +2,7 @@ import api from '../api';
 
 export interface Folder {
   id: number;
-  originalPrompt: string;
+  name: string;
   createdAt: string;
 }
 
