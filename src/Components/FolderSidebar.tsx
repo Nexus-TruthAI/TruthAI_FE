@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { getFolders, type Folder } from "../services/folderService";
 
 const Wrapper = styled.div`
     margin: 0 2rem 2rem 2rem;
@@ -18,7 +19,6 @@ const PromptWrapper = styled.div`
     flex-direction: column;
     height: 100vh;
     width: 90%;
-    // border-bottom: solid 1px rgba(255, 255, 255, 0.1);
 `;
 
 const TitleText = styled.div`
@@ -61,12 +61,85 @@ const PromptItem = styled.div`
     text-align: left;
     width: 100%;
     gap: 0.5rem;
+    cursor: pointer;
+    transition: color 0.2s;
+    padding: 0.5rem;
+    border-radius: 4px;
+    
+    &:hover {
+        color: #C2CCFD;
+        background-color: rgba(194, 204, 253, 0.1);
+    }
 `;
 
+const LoadingText = styled.div`
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    font-style: italic;
+    padding: 0.5rem;
+`;
 
+const ErrorText = styled.div`
+    color: #ff6b6b;
+    font-size: 12px;
+    font-style: italic;
+    padding: 0.5rem;
+`;
 
-const Sidebar = () => {
-    const prompts = Array(5).fill("내 폴더").map((text, i) => `${text} ${i + 1}`);
+const EmptyText = styled.div`
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 12px;
+    font-style: italic;
+    padding: 0.5rem;
+    text-align: center;
+`;
+
+interface FolderSidebarProps {
+    onRefresh?: () => void; // 새로고침 콜백 함수
+}
+
+const FolderSidebar = ({ onRefresh }: FolderSidebarProps) => {
+    const [folders, setFolders] = useState<Folder[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const navigate = useNavigate();
+
+    const fetchFolders = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const folderData = await getFolders();
+            if (Array.isArray(folderData)) {
+                setFolders(folderData);
+            } else {
+                console.error('API 응답이 배열이 아닙니다:', folderData);
+                setError('폴더 데이터 형식이 올바르지 않습니다.');
+                setFolders([]);
+            }
+        } catch (err) {
+            console.error('폴더 목록 조회 실패:', err);
+            setError('폴더 목록을 불러올 수 없습니다.');
+            setFolders([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 외부에서 새로고침 요청이 오면 실행
+    useEffect(() => {
+        if (onRefresh) {
+            fetchFolders();
+        }
+    }, [onRefresh]);
+
+    // 초기 로딩
+    useEffect(() => {
+        fetchFolders();
+    }, []);
+
+    const handleFolderClick = (folderId: number) => {
+        navigate(`/myfolder/${folderId}`);
+    };
 
     return (
         <Wrapper>
@@ -75,9 +148,23 @@ const Sidebar = () => {
                 <SubTitleText>내 폴더</SubTitleText>
                 <PromptListContainer>
                     <PromptList>
-                        {prompts.map((item, idx) => (
-                            <PromptItem key={idx}>{item}</PromptItem>
-                        ))}
+                        {loading ? (
+                            <LoadingText>폴더 목록을 불러오는 중...</LoadingText>
+                        ) : error ? (
+                            <ErrorText>{error}</ErrorText>
+                        ) : folders.length === 0 ? (
+                            <EmptyText>폴더가 없습니다.</EmptyText>
+                        ) : (
+                            folders.map((folder) => (
+                                <PromptItem
+                                    key={folder.id}
+                                    onClick={() => handleFolderClick(folder.id)}
+                                    title={`${folder.name} (${new Date(folder.createdAt).toLocaleDateString()})`}
+                                >
+                                    {folder.name}
+                                </PromptItem>
+                            ))
+                        )}
                     </PromptList>
                 </PromptListContainer>
             </PromptWrapper>
@@ -85,4 +172,4 @@ const Sidebar = () => {
     );
 };
 
-export default Sidebar;
+export default FolderSidebar;

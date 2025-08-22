@@ -7,6 +7,7 @@ import NewBtn from "../Components/NewBtn";
 import ArrowDown from "../Icons/ArrowDown.svg";
 import ArrowUp from "../Icons/ArrowUp.svg";
 import { useNavigate } from "react-router-dom";
+import { getFolders, createFolder, type Folder } from "../services/folderService";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -303,37 +304,31 @@ const DropdownItemSecond = styled.div`
 const MyFolderPL = () => {
     const [showModal, setShowModal] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [folders, setFolders] = useState<Folder[]>([]);
+    const [newFolderName, setNewFolderName] = useState('');
+    const [isCreating, setIsCreating] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
     const navigate = useNavigate();
     
-    // 임시 프롬프트 데이터 (백엔드에서 받아올 예정)
-    const tempPrompts = [
-        {
-            id: 1,
-            title: "인공지능 트렌드 요약",
-            date: "3시간 전"
-        },
-        {
-            id: 2,
-            title: "빅데이터 분석 단계 설명",
-            date: "2일 전"
-        },
-        {
-            id: 3,
-            title: "머신러닝과 딥러닝 설명 및 차이점",
-            date: "1달 전"
-        },
-        {
-            id: 4,
-            title: "자연어 처리 기술 동향",
-            date: "1주일 전"
-        },
-        {
-            id: 5,
-            title: "AI 윤리와 책임성",
-            date: "2주일 전"
-        }
-    ];
-    
+    // 폴더 목록 새로고침 함수
+    const refreshFolderSidebar = () => {
+        setRefreshKey(prev => prev + 1);
+    };
+
+    // 폴더 데이터 가져오기
+    useEffect(() => {
+        const fetchFolders = async () => {
+            try {
+                const folderData = await getFolders();
+                setFolders(folderData);
+            } catch (error) {
+                console.error('폴더 목록 조회 실패:', error);
+            }
+        };
+        
+        fetchFolders();
+    }, [refreshKey]);
+
     useEffect(() => {
         console.log("showDropdown: ", showDropdown);
     }, [showDropdown]);
@@ -365,14 +360,43 @@ const MyFolderPL = () => {
         console.log("showModal: ", showModal);
     }
 
+    const handleModalConfirm = async () => {
+        if (!newFolderName.trim()) {
+            alert("폴더명을 입력해주세요.");
+            return;
+        }
+
+        try {
+            setIsCreating(true);
+            const response = await createFolder(newFolderName.trim());
+
+            console.log('폴더 생성 성공:', response);
+            
+            const newFolder: Folder = {
+                id: response.folderId,
+                originalPrompt: newFolderName.trim(),
+                createdAt: new Date().toISOString()
+            };
+            setFolders(prev => [...prev, newFolder]);
+            
+            // FolderSidebar 새로고침 트리거
+            refreshFolderSidebar();
+            
+            setShowModal(false);
+            setNewFolderName('');
+            alert("폴더가 생성되었습니다!");
+        } catch (error) {
+            console.error('폴더 생성 실패:', error);
+            alert("폴더 생성에 실패했습니다. 다시 시도해주세요.");
+        } finally {
+            setIsCreating(false);
+        }
+    };
+
     const handleModalCancel = () => {
         setShowModal(false);
-    }
-
-    const handleModalConfirm = () => {
-        setShowModal(false);
-        alert("폴더 생성됨");
-    }
+        setNewFolderName('');
+    };
 
     const handlePromptClick = (promptId: number) => {
         navigate(`/myfolder/${promptId}`);
@@ -382,7 +406,7 @@ const MyFolderPL = () => {
         <Wrapper>
             <Topbar />
             <CrossCheckWrapper>
-                <FolderSidebar />
+                <FolderSidebar onRefresh={refreshFolderSidebar} />
                 <MainWrapper>
                     <CenterWrapper>
                         <TopWrapper>
@@ -411,16 +435,12 @@ const MyFolderPL = () => {
                                 </DropdownMenu>
                             )}
                             
-                            {tempPrompts.map((prompt) => (
-                                <PromptItem 
-                                    key={prompt.id} 
-                                    onClick={() => handlePromptClick(prompt.id)}
-                                    style={{ cursor: 'pointer' }}
-                                >
-                                    <PromptTitle>{prompt.title}</PromptTitle>
-                                    <PromptDate>{prompt.date}</PromptDate>
+                            {/* {folders.map((folder) => (
+                                <PromptItem >
+                                    <PromptTitle>{null}</PromptTitle>
+                                    <PromptDate>{null}</PromptDate>
                                 </PromptItem>
-                            ))}
+                            ))} */}
                         </PromptList>
 
                     </CenterWrapper>
@@ -438,14 +458,20 @@ const MyFolderPL = () => {
                         </ModalContent>
                         <InputWrapper>
                             <InputLabel>폴더명</InputLabel>
-                            <InputText width="80%" placeholder="입력해주세요." />
+                            <InputText 
+                                width="80%" 
+                                placeholder="입력해주세요." 
+                                value={newFolderName}
+                                onChange={(e) => setNewFolderName(e.target.value)}
+                                disabled={isCreating}
+                            />
                         </InputWrapper>
                         <ModalButtons>
-                            <ModalButton className="exit" onClick={handleModalCancel}>
+                            <ModalButton className="exit" onClick={handleModalCancel} disabled={isCreating}>
                                 뒤로가기
                             </ModalButton>
-                            <ModalButton className="secondary" onClick={handleModalConfirm}>
-                                폴더 생성하기
+                            <ModalButton className="secondary" onClick={handleModalConfirm} disabled={isCreating}>
+                                {isCreating ? '생성 중...' : '폴더 생성하기'}
                             </ModalButton>
                         </ModalButtons>
                     </Modal>

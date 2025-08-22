@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useSearchParams, useNavigate} from "react-router-dom";
 import { useEffect } from "react";
 import styled from "styled-components";
@@ -41,12 +40,25 @@ const OAuthCallback = () => {
 
         console.log("✅ 백엔드 응답 (JWT):", res.data);
 
-        const { accessToken, refreshToken } = res.data;
+        const { accessToken, refreshToken, user } = res.data;
 
         if (accessToken && refreshToken) {
-          // 세션 스토리지에 저장
+          // 세션 스토리지에 토큰 저장
           sessionStorage.setItem('accessToken', accessToken);
           sessionStorage.setItem('refreshToken', refreshToken);
+          
+          // 사용자 정보가 있으면 localStorage에 저장
+          if (user) {
+            if (user.profileImage) {
+              localStorage.setItem('profileImage', user.profileImage);
+            }
+            if (user.name) {
+              localStorage.setItem('userName', user.name);
+            }
+            if (user.email) {
+              localStorage.setItem('userEmail', user.email);
+            }
+          }
 
           navigate("/FeatChoice");
         } else {
