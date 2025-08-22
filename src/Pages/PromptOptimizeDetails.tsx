@@ -148,7 +148,7 @@ const LoadingPersona = styled.button`
   font-weight: 500;
   text-decoration: underline;
 `
-const PrimaryButton = styled.button`
+const OptimizeButton = styled.button`
   display: inline-flex;
   padding: 0.68rem 1rem;
   align-items: center;
@@ -166,8 +166,84 @@ const PrimaryButton = styled.button`
   &:hover {
     background-color: '#3551DE;';
   }
-`;
+`
+const ModalOverlay = styled.div`
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+`
 
+const Modal = styled.div`
+    width: 25rem;
+    height: 16.625rem;
+    background-color: #fff;
+    border-radius: 20px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+`
+
+const ModalTitle = styled.h2`
+    font-size: 20px;
+    font-weight: 600;
+    color: #000;
+    margin: 2rem 0 0 0;
+    text-align: center;
+`
+
+const ModalContent = styled.p`
+    font-size: 14px;
+    font-weight: 600;
+    color: #494949;
+    line-height: 1.5;
+    text-align: center;
+    margin: 0 2rem;
+    white-space: pre-line;
+`
+
+const ModalButtons = styled.div`
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    height: 4rem;
+`
+
+const ModalButton = styled.button`
+    flex: 1;
+    border-radius: 0px;
+    padding: 0.75rem 1.5rem;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    
+    &:focus {
+        outline: none;
+    }
+
+    &.exit {
+        border-bottom-left-radius: 20px;
+        border-bottom-right-radius: 20px;
+        border: none;
+        background-color: #FF2E2E;
+        color: #ffffff;
+
+        &:hover {
+            background-color:rgb(225, 37, 37);
+            outline: none;
+        }
+    }
+`
 
 const domains = [
   { name: "정치", icon: "🏛️", value: "POLITICS" },
@@ -191,15 +267,31 @@ const PromptOptimizeDetails = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [done, setDone] = useState(false);
 
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState<"noInfo" | "noDomain" | "noPersona" | null>(null);
+
+  { /* 도메인 선택 */ }
   const handleDomainClick = (name: string) => {
-    setSelectedDomain(name); // 클릭하면 바로 선택됨, 이전 선택은 자동 해제
-    setDomain(name);         // Context에도 저장
+    if (selectedDomain === name) {
+      setSelectedDomain("");
+      setDomain("");
+    } else {
+      setSelectedDomain(name); // 선택
+      setDomain(name);
+    }
   };
 
   { /* 최적화 버튼 클릭 */ }
   const handleOptimize = async () => {
-    if (!persona.trim() || !selectedDomain) {
-      alert("프롬프트, 도메인, 페르소나를 모두 입력해주세요.");
+    if (!persona.trim()) {
+      setModalType('noPersona');
+      setShowModal(true);
+      return;
+    }
+
+    if (!selectedDomain) {
+      setModalType('noDomain');
+      setShowModal(true);
       return;
     }
 
@@ -209,12 +301,6 @@ const PromptOptimizeDetails = () => {
     try {
       // 선택된 도메인의 value 가져오기
       const domainValue = domains.find(d => d.name === selectedDomain)?.value;
-
-      if (!domainValue) {
-        alert("도메인을 올바르게 선택해주세요.");
-        setIsLoading(false);
-        return;
-      }
 
       const response = await axios.post(
         "/prompt/create-best-prompt",
@@ -240,6 +326,34 @@ const PromptOptimizeDetails = () => {
       alert("프롬프트 최적화 중 오류가 발생했습니다.");
     }finally {
       setIsLoading(false); // 🔹 로딩 종료
+    }
+  };
+
+  { /* 모달 창 돌아가기 버튼 클릭 시 */ }
+  const handleModalClose = () => {
+        setShowModal(false);
+        setModalType(null);
+  };
+
+  { /* ⚠️ 아직 안됨! ㅠ 내 정보 불러오기 클릭 시 */ }
+  const handleLoadPersona = async () => {
+    try {
+      const token = sessionStorage.getItem("accessToken");
+      console.log(token);
+      const res = await axios.get("/auth/persona"); // 프록시 + 인터셉터에서 토큰 처리
+
+      if (res.data?.persona) {
+        // persona가 있으면 Context에 세팅
+        setPersona(res.data.persona);
+      } else {
+        // persona 없을 때 모달 띄우기
+        setModalType("noInfo");
+        setShowModal(true);
+      }
+    } catch (err) {
+      console.error("유저 persona 불러오기 실패:", err);
+      setModalType("noInfo");
+      setShowModal(true);
     }
   };
 
@@ -286,19 +400,44 @@ const PromptOptimizeDetails = () => {
             </PersonaBox>
             {/* PersonaBox와 끝나는 위치 맞추기 */}
             <PersonaActions>
-              <LoadingPersona onClick={() => console.log("내 정보 불러오기 클릭됨")}>
+              <LoadingPersona onClick={() => handleLoadPersona()}>
                 내 정보 불러오기
               </LoadingPersona>
             </PersonaActions>
 
             {/* 메인 버튼 */}
-            <PrimaryButton onClick={() => handleOptimize()}>
+            <OptimizeButton onClick={() => handleOptimize()}>
               프롬프트 최적화하기
               <img src={ArrowRight} alt="arrow" style={{ width: "1rem", height: "1rem" }} />
-            </PrimaryButton>
+            </OptimizeButton>
         </MainWrapper>
       )}
       </PromptDetailsWrapper>
+
+      {showModal && (
+        <ModalOverlay>
+          <Modal>
+            <ModalTitle>
+              {modalType === 'noDomain' ? '선택된 주제가 없습니다' : 
+              modalType === 'noPersona' ? '선택된 대상이 없습니다' : 
+              '저장된 내용이 없습니다'}
+            </ModalTitle>
+            <ModalContent>
+              {modalType === 'noDomain' 
+              ? `주제를 지정해야 AI가 더 정확한 프롬프트를 생성할 수 있습니다.`
+              : modalType === 'noPersona'
+              ? `사용자를 지정하면 AI가 더 개인화된 프롬프트를 제공합니다.`
+              : `내 프로필에서 내 정보를 먼저 저장해 주세요.`
+              }
+            </ModalContent>
+            <ModalButtons>
+              <ModalButton className="exit" onClick={handleModalClose}>
+                돌아가기
+              </ModalButton>
+            </ModalButtons>
+          </Modal>
+        </ModalOverlay>
+      )}
     </Wrapper>
   );
 }
