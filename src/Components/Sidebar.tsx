@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useState}from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { usePrompt } from "../Context/PromptContext";
+
+import api from "../api";
 
 const Wrapper = styled.div`
     margin: 0 2rem 2rem 2rem;
@@ -73,8 +76,27 @@ const Sidebar = () => {
     const prompt_text = "새로운 프롬프트 생성하기 >";
     const cross_text = "새로 AI 교차검증하기 >";
     const navigate = useNavigate();
+    const [prompts, setPrompts] = useState<{promptId: number, summary: string}[]>([]);
+    const { promptList, setPromptList } = usePrompt();
 
-    const prompts = Array(5).fill("최근 보고서 요약 요청").map((text, i) => `${text} ${i + 1}`);
+    //const prompts = Array(5).fill("최근 보고서 요약 요청").map((text, i) => `${text} ${i + 1}`);
+
+    // Todo:
+    // 현재 api 자체는 잘 되는데 프롬프트 생성받으면 자동으로 처리되고 있는건지가 불분명
+    // 프롬프트와 교차검증이 따로 오는지도 불분명
+
+    React.useEffect(() => {
+        const fetchSidebarPrompts = async () => {
+        try {
+            const res = await api.get("/prompt/side-bar/list");
+            setPromptList(res.data || []);
+        } catch (err) {
+            console.error("사이드바 조회 실패", err);
+        }
+        };
+
+        fetchSidebarPrompts();
+    }, [setPromptList]);
 
     return (
         <Wrapper>
@@ -82,9 +104,12 @@ const Sidebar = () => {
                 <TitleText>내 프롬프트</TitleText>
                 <PromptListContainer>
                     <PromptList>
-                        {prompts.map((item, idx) => (
-                            <PromptItem key={idx}>{item}</PromptItem>
+                        {promptList.map((item) => (
+                            <div key={item.promptId}>{item.summary}</div>
                         ))}
+                        {/*prompts.map((item, idx) => (
+                            <PromptItem key={idx}>{item}</PromptItem>
+                        ))*/}
                     </PromptList>
                 </PromptListContainer>
                 <NewBtn onClick={() => navigate('/promptopt')}>{prompt_text}</NewBtn>
@@ -93,9 +118,12 @@ const Sidebar = () => {
                 <TitleText>교차검증</TitleText>
                 <PromptListContainer>
                     <PromptList>
-                        {prompts.map((item, idx) => (
-                            <PromptItem key={idx}>{item}</PromptItem>
+                        {prompts.map((item) => (
+                            <PromptItem key={item.promptId}>{item.summary}</PromptItem>
                         ))}
+                        {/*prompts.map((item, idx) => (
+                            <PromptItem key={idx}>{item}</PromptItem>
+                        ))*/}
                     </PromptList>
                 </PromptListContainer>
                 <NewBtn onClick={() => navigate('/crosscheckq')}>{cross_text}</NewBtn>

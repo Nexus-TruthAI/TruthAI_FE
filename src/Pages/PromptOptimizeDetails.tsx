@@ -273,7 +273,7 @@ const domains = [
 const PromptOptimizeDetails = () => {
   const navigate = useNavigate();
 
-  const { prompt, setPrompt, domain, setDomain, persona, setPersona, isOptimized, setIsOptimized } = usePrompt(); // Context 사용
+  const { prompt, setPrompt, domain, setDomain, persona, setPersona, setIsOptimized, setPromptId } = usePrompt(); // Context 사용
   const [selectedDomain, setSelectedDomain] = useState<string>(domain || "");
   const [isLoading, setIsLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -329,6 +329,8 @@ const PromptOptimizeDetails = () => {
       const data = response.data;
       setPrompt(data.optimizedPrompt || "최적화된 프롬프트 예시");
       setIsOptimized(true);
+      setPromptId(data.promptId); // ⚡ 여기에 promptId 저장
+      console.log("최적화된 프롬프트:", data.promptId);
       setDone(true); // 완료 표시
 
       navigate("/promptopt");
