@@ -129,7 +129,7 @@ const BookmarkModal = ({
               selected={folder.id === selectedFolder?.id}
               onClick={() => setSelectedFolder(folder)}
             >
-              <FolderName>{folder.originalPrompt}</FolderName>
+              <FolderName>{folder.name}</FolderName>
               <FolderInfo>{new Date(folder.createdAt).toLocaleDateString()}</FolderInfo>
             </FolderCard>
           ))}

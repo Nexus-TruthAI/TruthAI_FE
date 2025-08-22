@@ -374,7 +374,7 @@ const MyFolderPL = () => {
             
             const newFolder: Folder = {
                 id: response.folderId,
-                originalPrompt: newFolderName.trim(),
+                name: newFolderName.trim(),
                 createdAt: new Date().toISOString()
             };
             setFolders(prev => [...prev, newFolder]);
