@@ -85,7 +85,7 @@ const OptPrompt = styled.div`
   resize: none;
   color: #fff;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.5;
   box-shadow: 
       0 1px 1px rgba(0, 0, 0, 0.15),
@@ -94,7 +94,6 @@ const OptPrompt = styled.div`
       0 8px 8px rgba(0, 0, 0, 0.15);
 
   &::placeholder {
-      font-family: 'SUIT';
       color: #EFEFEF;
       font-size: 16px;
       font-weight: 400;
@@ -108,7 +107,20 @@ const ScrollArea = styled.div`
   width: 100%;
   height: 9rem;
   overflow-y: auto;
-  margin-bottom: 0.5rem; // 버튼과 간격
+  margin-bottom: 0.5rem;
+  /* 가로 스크롤 없이 자동 줄바꿈 + 세로 스크롤 */
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    /* 줄바꿈 강제 */
+    white-space: pre-wrap;
+    word-break: break-word;
+
+    /* 내부 마크다운 블록 요소에도 적용 */
+    & > * {
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
 `
 const PromptInput = styled.textarea`
   font-family: 'SUIT';
@@ -239,7 +251,8 @@ const PromptOptimize = () => {
 
   { /*  교차검증 페이지로 이동   */ }
   const handleCrossValidation = () => {
-    navigate("/crosscheckq", { state: { usePrompt: true } });
+    if (!isOptimized) return; // 혹시 안전장치
+    navigate("/crosscheckq", { state: { optimizedPrompt: prompt } });
   };
 
   /*   🛠️ 최적화된 프롬프트 관련 함수   */

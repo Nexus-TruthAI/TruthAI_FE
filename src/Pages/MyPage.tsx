@@ -361,6 +361,7 @@ const MyPage = () => {
                 navigate("/login");
             } else {
                 // 🔹 토큰 유효
+                console.log("토큰 유효:", token);
 
                 // 유저 정보 세팅
                 setUserName(decoded.username);

@@ -409,7 +409,7 @@ const CrossCheckA = () => {
         if (selectedAIs.length === 1) {
             setShowModal(true);
         } else {
-            navigate('/verification');
+            navigate('/factcheck');
         }
     };
 

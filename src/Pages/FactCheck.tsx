@@ -1,4 +1,3 @@
-import React from "react";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import styled from "styled-components";
@@ -10,7 +9,6 @@ import ExternalReference from "../Components/ExternalReference";
 
 import CopyIcon from "../Icons/Copy.png";
 import QuestionIcon from "../Icons/QuestionMark.png"
-import Logo from '../Icons/Logo.svg';
 
 
 const Wrapper = styled.div`
