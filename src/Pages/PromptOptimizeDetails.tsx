@@ -3,6 +3,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { usePrompt } from "../Context/PromptContext";
+import { jwtDecode } from "jwt-decode";
+
+import api from "../api";
 
 import Topbar from "../Components/Topbar";
 import Sidebar from "../Components/Sidebar";
@@ -245,6 +248,14 @@ const ModalButton = styled.button`
     }
 `
 
+interface JwtPayload {
+  sub: string;
+  username: string;
+  email: string;
+  iat: number;
+  exp: number;
+}
+
 const domains = [
   { name: "정치", icon: "🏛️", value: "POLITICS" },
   { name: "경제", icon: "💵", value: "ECONOMICS" },
@@ -335,20 +346,34 @@ const PromptOptimizeDetails = () => {
         setModalType(null);
   };
 
-  { /* ⚠️ 아직 안됨! ㅠ 내 정보 불러오기 클릭 시 */ }
+  { /* 내 정보 불러오기 클릭 시 */ }
   const handleLoadPersona = async () => {
-    try {
-      const token = sessionStorage.getItem("accessToken");
-      console.log(token);
-      const res = await axios.get("/auth/persona"); // 프록시 + 인터셉터에서 토큰 처리
+    const token = sessionStorage.getItem("accessToken");
 
-      if (res.data?.persona) {
-        // persona가 있으면 Context에 세팅
-        setPersona(res.data.persona);
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const decoded = jwtDecode<JwtPayload>(token);
+      const now = Math.floor(Date.now() / 1000);
+
+      if (decoded.exp < now) {
+        // 🔹 토큰 만료
+        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+        sessionStorage.removeItem("accessToken");
+        navigate("/login");
       } else {
-        // persona 없을 때 모달 띄우기
-        setModalType("noInfo");
-        setShowModal(true);
+        // 🔹 토큰 유효 -> persona 가져오기
+        api.get("/auth/persona")
+          .then(res => {
+          setPersona(res.data.persona);
+          })
+          .catch(err => {
+          console.error("페르소나 불러오기 실패:", err);
+          });
       }
     } catch (err) {
       console.error("유저 persona 불러오기 실패:", err);
