@@ -1,10 +1,11 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./Pages/GoogleLogin";
 import FeatChoicePage from "./Pages/FeatChoice";
 import OAuthCallbackPage from "./Pages/OauthCallback";
 
 // 로그인 여부 확인 예시
 const isLoggedIn = () => !!localStorage.getItem("accessToken");
+console.log(isLoggedIn());
 
 function App() {
   return (

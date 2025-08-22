@@ -15,7 +15,12 @@ export default defineConfig({
         target: 'https://api.truthai.shop',
         changeOrigin: true,
         secure: false,
-      }
+      },
+      '/prompt': {
+        target: 'https://api.truthai.shop',
+        changeOrigin: true,
+        secure: false,
+      },
     }
   }
 })
