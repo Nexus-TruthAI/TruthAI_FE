@@ -251,7 +251,7 @@ const PromptOptimize = () => {
     }
   };
 
-  // 2. 프롬프트 재생성 기능
+  // 2. 프롬프트 재생성 기능.. 일단 보류
   const handleRetryOptimization = async () => {
     if (!originalPrompt) return;
     setIsLoading(true);
