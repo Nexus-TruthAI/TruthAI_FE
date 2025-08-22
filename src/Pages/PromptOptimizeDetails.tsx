@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
@@ -313,7 +312,7 @@ const PromptOptimizeDetails = () => {
       // 선택된 도메인의 value 가져오기
       const domainValue = domains.find(d => d.name === selectedDomain)?.value;
 
-      const response = await axios.post(
+      const response = await api.post(
         "/prompt/create-best-prompt",
         {
           question: prompt,

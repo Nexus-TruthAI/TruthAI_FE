@@ -1,9 +1,10 @@
 import styled from "styled-components";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 
 import { usePrompt } from "../Context/PromptContext";
+import { getFolders, type Folder } from "../services/folderService";
 
 import Topbar from "../Components/Topbar";
 import Sidebar from "../Components/Sidebar";
@@ -85,7 +86,7 @@ const OptPrompt = styled.div`
   resize: none;
   color: #fff;
   font-size: 16px;
-  font-weight: 400;
+  font-weight: 600;
   line-height: 1.5;
   box-shadow: 
       0 1px 1px rgba(0, 0, 0, 0.15),
@@ -94,6 +95,7 @@ const OptPrompt = styled.div`
       0 8px 8px rgba(0, 0, 0, 0.15);
 
   &::placeholder {
+      font-family: 'SUIT';
       color: #EFEFEF;
       font-size: 16px;
       font-weight: 400;
@@ -107,20 +109,7 @@ const ScrollArea = styled.div`
   width: 100%;
   height: 9rem;
   overflow-y: auto;
-  margin-bottom: 0.5rem;
-  /* 가로 스크롤 없이 자동 줄바꿈 + 세로 스크롤 */
-    overflow-y: auto;
-    overflow-x: hidden;
-
-    /* 줄바꿈 강제 */
-    white-space: pre-wrap;
-    word-break: break-word;
-
-    /* 내부 마크다운 블록 요소에도 적용 */
-    & > * {
-        white-space: pre-wrap;
-        word-break: break-word;
-    }
+  margin-bottom: 0.5rem; // 버튼과 간격
 `
 const PromptInput = styled.textarea`
   font-family: 'SUIT';
@@ -230,7 +219,8 @@ const PromptOptimize = () => {
   const [isLoading, setIsLoading] = useState(false);  // 로딩 상태 여부
 
   const [showBookmarkModal, setShowBookmarkModal] = useState(false);
-  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
 
@@ -280,6 +270,19 @@ const PromptOptimize = () => {
     }
   };
 
+  // 📂 폴더 데이터 불러오기
+  React.useEffect(() => {
+    const fetchFolders = async () => {
+      try {
+        const folderData = await getFolders();
+        setFolders(folderData);
+      } catch (error) {
+        console.error("폴더 목록 조회 실패:", error);
+      }
+    };
+    fetchFolders();
+  }, []);
+
 
   return (
     <Wrapper>
@@ -313,6 +316,21 @@ const PromptOptimize = () => {
                               />
                               {showBookmarkModal && (
                                 <BookmarkModal
+                                  folders={folders}
+                                  onClose={() => setShowBookmarkModal(false)}
+                                  onSave={() => {
+                                    if (selectedFolder) {
+                                      setIsBookmarked(true);
+                                      setShowBookmarkModal(false);
+                                      alert(`${selectedFolder.name}에 북마크가 저장되었습니다.`);
+                                    }
+                                  }}
+                                  selectedFolder={selectedFolder}
+                                  setSelectedFolder={setSelectedFolder}
+                                />
+                              )}
+                              {/*showBookmarkModal && (
+                                <BookmarkModal
                                   folders={["기본 폴더", "기획", "디자인", "마케팅", "배고파", "개발"]}
                                   onClose={() => setShowBookmarkModal(false)}
                                   onSave={() => {
@@ -322,7 +340,7 @@ const PromptOptimize = () => {
                                   selectedFolder={selectedFolder}
                                   setSelectedFolder={setSelectedFolder}
                                 />
-                              )}
+                              )*/}
                               <IconBtn src={RefreshIcon} onClick={handleRetryOptimization} />
                               <IconBtn src={CopyIcon} onClick={handleCopy} />
                             </OptimizedBtnGroup>
