@@ -9,6 +9,7 @@ import BookmarkIcon from "../Icons/BookmarkEmpty.png";
 import BookmarkFillIcon from "../Icons/BookmarkFill.png";
 import BookmarkModal from "../Components/BookmarkModal";
 import type { LLMResponse } from "../services/llmService";
+import { usePrompt } from "../Context/PromptContext";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -259,6 +260,7 @@ const CrossCheckA = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { answerId } = useParams(); // URL 파라미터에서 answerId 추출
+    const { promptId } = usePrompt(); // context에서 promptId 가져오기
 
     // 선택된 AI들 (location.state에서 가져오거나 기본값)
     const selectedAIs = location.state?.selectedAIs || [];
@@ -273,13 +275,18 @@ const CrossCheckA = () => {
             // TODO: 백엔드에서 answerId로 저장된 답변 데이터를 가져오는 로직
             // const savedAnswer = await getSavedAnswer(answerId);
         }
-    }, [answerId]);
+        
+        if (promptId) {
+            console.log('📝 현재 프롬프트 ID:', promptId);
+        }
+    }, [answerId, promptId]);
     
     // 선택된 AI 중 첫 번째를 기본 탭으로 설정
     const [activeTab, setActiveTab] = useState('chatgpt');
     const [showModal, setShowModal] = useState(false);
     const [showBookmarkModal, setShowBookmarkModal] = useState(false);
     const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     
     // 각 AI별 북마크 상태
     const [bookmarkStates, setBookmarkStates] = useState({
@@ -305,21 +312,87 @@ const CrossCheckA = () => {
         }
     }, [selectedAIs]);
 
+    // 필수 데이터가 없으면 CrossCheckQ로 리다이렉트
+    useEffect(() => {
+        console.log('🔍 CrossCheckA - 현재 상태 확인:');
+        console.log('  - selectedAIs:', selectedAIs);
+        console.log('  - responses:', responses);
+        console.log('  - promptId:', promptId);
+        console.log('  - responses isArray:', Array.isArray(responses));
+        console.log('  - responses length:', responses?.length);
+        
+        // 이미 리다이렉트 중이거나 responses가 로딩 중인 경우는 처리하지 않음
+        if (Array.isArray(responses) && responses.length > 0) {
+            setIsLoading(false);
+            return; // 데이터가 있으면 리다이렉트하지 않음
+        }
+        
+        // answerId가 있는 경우는 저장된 답변을 보여주는 것이므로 리다이렉트하지 않음
+        if (answerId) {
+            setIsLoading(false);
+            return;
+        }
+        
+        // 선택된 AI가 없고 응답도 없는 경우에만 리다이렉트
+        if (selectedAIs.length === 0 && (!Array.isArray(responses) || responses.length === 0)) {
+            console.log('No responses data found, redirecting to CrossCheckQ');
+            navigate('/crosscheckq', { replace: true }); // replace: true로 히스토리 스택에 쌓이지 않도록 함
+        }
+        
+        // 3초 후에도 데이터가 없으면 리다이렉트
+        const timeoutId = setTimeout(() => {
+            if (!Array.isArray(responses) || responses.length === 0) {
+                console.log('Timeout reached, redirecting to CrossCheckQ');
+                navigate('/crosscheckq', { replace: true });
+            }
+        }, 3000);
+        
+        return () => clearTimeout(timeoutId);
+    }, [responses, selectedAIs, answerId, navigate, promptId]);
+
+    // 로딩 중이면 빈 화면 표시
+    if (isLoading) {
+        return (
+            <Wrapper>
+                <Topbar/>
+                <CrossCheckWrapper>
+                    <Sidebar/>
+                    <MainWrapper>
+                        <MainText>데이터를 <Highlight>로딩</Highlight>중입니다...</MainText>
+                    </MainWrapper>
+                </CrossCheckWrapper>
+            </Wrapper>
+        );
+    }
+
     // API 응답을 기반으로 AI별 답변 데이터 생성
     const aiResponses = {
         chatgpt: (() => {
+            // responses가 배열인지 확인하고 안전하게 처리
+            if (!Array.isArray(responses)) {
+                return '생성된 결과가 없습니다.';
+            }
             const response = responses.find(r => r.llmModel.toLowerCase() === 'gpt');
             return response ? response.answer : '생성된 결과가 없습니다.';
         })(),
         claude: (() => {
+            if (!Array.isArray(responses)) {
+                return '생성된 결과가 없습니다.';
+            }
             const response = responses.find(r => r.llmModel.toLowerCase() === 'claude');
             return response ? response.answer : '생성된 결과가 없습니다.';
         })(),
         gemini: (() => {
+            if (!Array.isArray(responses)) {
+                return '생성된 결과가 없습니다.';
+            }
             const response = responses.find(r => r.llmModel.toLowerCase() === 'gemini');
             return response ? response.answer : '생성된 결과가 없습니다.';
         })(),
         perplexity: (() => {
+            if (!Array.isArray(responses)) {
+                return '생성된 결과가 없습니다.';
+            }
             const response = responses.find(r => r.llmModel.toLowerCase() === 'perplexity');
             return response ? response.answer : '생성된 결과가 없습니다.';
         })(),

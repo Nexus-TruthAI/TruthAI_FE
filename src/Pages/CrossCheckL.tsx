@@ -5,7 +5,7 @@ import Topbar from "../Components/Topbar";
 import Sidebar from "../Components/Sidebar";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getLLMAnswers } from "../services/llmService";
-import type { LLMResponse } from "../services/llmService";
+import { usePrompt } from "../Context/PromptContext";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -84,6 +84,7 @@ const CrossCheckL = () => {
     const [loadingProgress, setLoadingProgress] = useState(0);
     const location = useLocation();
     const navigate = useNavigate();
+    const { setPromptId } = usePrompt();
 
     useEffect(() => {
         const fetchAnswers = async () => {
@@ -99,18 +100,24 @@ const CrossCheckL = () => {
                 console.log('🔄 API 호출 시작 - 선택된 AI:', request.models);
                 
                 // API 호출 시작
-                const responses: LLMResponse[] = await getLLMAnswers(request);
+                const apiResponse = await getLLMAnswers(request);
                 
-                console.log('✅ API 응답 완료:', responses);
+                console.log('✅ API 응답 완료:', apiResponse);
+                
+                // llmAnswerDto 배열 추출
+                const responses = apiResponse.llmAnswerDto || [];
+                console.log('📝 추출된 답변 데이터:', responses);
                 
                 // 로딩 완료 후 CrossCheckA로 이동
                 setLoadingProgress(100); // 100%로 완료
+                setPromptId(apiResponse.promptId); // promptId를 컨텍스트에 저장
                 setTimeout(() => {
                     navigate('/crosschecka', { 
                         state: { 
                             selectedAIs: location.state?.selectedAIs || [],
                             promptText: location.state?.promptText || '',
-                            responses 
+                            responses,
+                            promptId: apiResponse.promptId // promptId도 함께 전달
                         } 
                     });
                 }, 800); // 로딩 바가 100%까지 완료되는 것을 보여주기 위해 약간 더 지연
@@ -140,7 +147,7 @@ const CrossCheckL = () => {
         fetchAnswers();
 
         return () => clearInterval(interval);
-    }, [navigate, location.state]);
+    }, [navigate, location.state, setPromptId]);
 
     return (
         <Wrapper>

@@ -8,9 +8,14 @@ export interface LLMResponse {
   answer: string;
 }
 
+export interface LLMAPIResponse {
+  promptId: number;
+  llmAnswerDto: LLMResponse[];
+}
+
 import axios from 'axios';
 
-export const getLLMAnswers = async (request: LLMRequest): Promise<LLMResponse[]> => {
+export const getLLMAnswers = async (request: LLMRequest): Promise<LLMAPIResponse> => {
   try {
     // TODO: 인증 로직 완성 후 주석 해제
     // const accessToken = sessionStorage.getItem('accessToken');
