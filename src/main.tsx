@@ -37,6 +37,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path='/promptoptdetail' element={<PromptOptimizeDetails/>}/>
         <Route path='/crosscheckl' element={<CrossCheckL/>}/>
         <Route path='/crosschecka' element={<CrossCheckA/>}/>
+        <Route path='/crosschecka/:answerId' element={<CrossCheckA/>}/>
         <Route path='/question' element={<Question/>}/>
         <Route path='/factcheck' element={<FactCheck/>}/>
         <Route path='/mypage' element={<MyPage/>}/>
