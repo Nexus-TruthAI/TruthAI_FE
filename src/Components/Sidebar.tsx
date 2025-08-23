@@ -76,8 +76,10 @@ const Sidebar = () => {
     const prompt_text = "새로운 프롬프트 생성하기 >";
     const cross_text = "새로 AI 교차검증하기 >";
     const navigate = useNavigate();
-    const [prompts, setPrompts] = useState<{promptId: number, summary: string}[]>([]);
-    const { promptList, setPromptList } = usePrompt();
+    //const [prompts, setPrompts] = useState<{promptId: number, summary: string}[]>([]);
+    const { setPromptId } = usePrompt();
+    const [promptList, setPromptList] = useState<{promptId: number, summary: string}[]>([]);
+    const [crossCheckList, setCrossCheckList] = useState<{promptId: number, summary: string}[]>([]);
 
     //const prompts = Array(5).fill("최근 보고서 요약 요청").map((text, i) => `${text} ${i + 1}`);
 
@@ -105,7 +107,15 @@ const Sidebar = () => {
                 <PromptListContainer>
                     <PromptList>
                         {promptList.map((item) => (
-                            <div key={item.promptId}>{item.summary}</div>
+                            <PromptItem
+                                key={item.promptId}
+                                onClick={() => {
+                                    setPromptId(item.promptId);
+                                    navigate(`/promptopt/${item.promptId}`);
+                                }}
+                            >
+                                {item.summary}
+                            </PromptItem>
                         ))}
                         {/*prompts.map((item, idx) => (
                             <PromptItem key={idx}>{item}</PromptItem>
@@ -118,7 +128,7 @@ const Sidebar = () => {
                 <TitleText>교차검증</TitleText>
                 <PromptListContainer>
                     <PromptList>
-                        {prompts.map((item) => (
+                        {promptList.map((item) => (
                             <PromptItem key={item.promptId}>{item.summary}</PromptItem>
                         ))}
                         {/*prompts.map((item, idx) => (

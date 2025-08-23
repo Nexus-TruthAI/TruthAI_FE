@@ -1,10 +1,11 @@
 import styled from "styled-components";
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 
 import { usePrompt } from "../Context/PromptContext";
 import { getFolders, type Folder } from "../services/folderService";
+import api from "../api";
 
 import Topbar from "../Components/Topbar";
 import Sidebar from "../Components/Sidebar";
@@ -207,22 +208,68 @@ const ArrowIcon = styled.img`
   width: 1.4rem;
   height: 1.4rem;
   filter: invert(1) brightness(0); // 완전 검정으로
-`;
+`
 
+interface PromptData {
+  id: number;
+  originalPrompt: string;
+  optimizedPrompt?: string;
+  isOptimized: boolean;
+}
 
 
 const PromptOptimize = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const { prompt, setPrompt, isOptimized, setIsOptimized } = usePrompt(); // 프롬프트 입력 / 결과 공용
-  const [originalPrompt, setOriginalPrompt] = useState(""); // 재생성용 원본 프롬프트
-  const [isLoading, setIsLoading] = useState(false);  // 로딩 상태 여부
+  // navigate로 전달된 값 가져오기
+  const passedPrompt = location.state?.optimizedPrompt || "";
+  const [isOptimized, setIsOptimized] = useState(location.state?.isOptimized || false);
 
+  const { promptId } = usePrompt();
+  const { id } = useParams(); // URL : /promptopt/:id
+  const currentPromptId = promptId ?? (id ? Number(id) : null);
+  //const { prompt, setPrompt, isOptimized, setIsOptimized } = usePrompt(); // 프롬프트 입력 / 결과 공용
+
+  // ✅ 로컬 상태
+  const [prompt, setPrompt] = useState("");
+  // 일단 로케이션에서 가져오는걸로 const [isOptimized, setIsOptimized] = useState(false);
+  const [originalPrompt, setOriginalPrompt] = useState(""); 
+  const [isLoading, setIsLoading] = useState(false);
+
+  // 북마크 관련 상태
   const [showBookmarkModal, setShowBookmarkModal] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
+
+  
+  {/* ✅ passedPrompt가 있으면 우선 적용 */}
+  React.useEffect(() => {
+    if (passedPrompt) {
+      setPrompt(passedPrompt);
+      setIsOptimized(true);
+    }
+  }, [passedPrompt]);
+
+  {/* ✅ 사이드바에서 타고 넘어올 때 API 조회 (passedPrompt 없을 때만) */}
+  React.useEffect(() => {
+    if (!currentPromptId || passedPrompt) return;
+
+    const fetchPrompt = async () => {
+      try {
+        const res = await api.get(`/prompt/${currentPromptId}`);
+        setPrompt(res.data.optimizedPrompt ?? res.data.originalPrompt);
+        setOriginalPrompt(res.data.originalPrompt);
+        setIsOptimized(!!res.data.optimizedPrompt);
+      } catch (err) {
+        console.error("프롬프트 조회 실패", err);
+      }
+    };
+
+    fetchPrompt();
+  }, [currentPromptId, passedPrompt]);
 
 
   { /* 🛠️ 프롬프트 예시 클릭 */ }
@@ -236,7 +283,7 @@ const PromptOptimize = () => {
       setShowAlertModal(true);
       return;
     }
-    navigate("/promptoptdetail");
+    navigate("/promptoptdetail", { state: { prompt } });
   };
 
   { /*  교차검증 페이지로 이동   */ }
@@ -329,7 +376,8 @@ const PromptOptimize = () => {
                                   setSelectedFolder={setSelectedFolder}
                                 />
                               )}
-                              {/*showBookmarkModal && (
+                              {/* 기존 북마크 모달..
+                              showBookmarkModal && (
                                 <BookmarkModal
                                   folders={["기본 폴더", "기획", "디자인", "마케팅", "배고파", "개발"]}
                                   onClose={() => setShowBookmarkModal(false)}

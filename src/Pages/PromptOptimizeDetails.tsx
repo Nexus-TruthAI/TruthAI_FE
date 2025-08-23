@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { usePrompt } from "../Context/PromptContext";
 import { jwtDecode } from "jwt-decode";
@@ -271,11 +271,24 @@ const domains = [
 
 const PromptOptimizeDetails = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { setPromptId } = usePrompt();
+  
+  // 이전 페이지에서 넘어온 프롬프트
+  const passedPrompt = location.state?.prompt || "";
 
-  const { prompt, setPrompt, domain, setDomain, persona, setPersona, setIsOptimized, setPromptId } = usePrompt(); // Context 사용
+  // 로컬 state
+  const [prompt] = useState(passedPrompt); // 수정 불가, api 전달용
+  const [domain, setDomain] = useState<string | null>(null);
+  const [persona, setPersona] = useState("");
+  const [isOptimized, setIsOptimized] = useState(false);
   const [selectedDomain, setSelectedDomain] = useState<string>(domain || "");
+
   const [isLoading, setIsLoading] = useState(false);
-  const [done, setDone] = useState(false);
+  const [done, setDone] = useState(false); // 로딩바에 쓰임
+
+  //const { prompt, setPrompt, domain, setDomain, persona, setPersona, setIsOptimized, setPromptId } = usePrompt(); // Context 사용
+  //const [selectedDomain, setSelectedDomain] = useState<string>(domain || "");
 
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState<"noInfo" | "noDomain" | "noPersona" | null>(null);
@@ -286,7 +299,7 @@ const PromptOptimizeDetails = () => {
       setSelectedDomain("");
       setDomain("");
     } else {
-      setSelectedDomain(name); // 선택
+      setSelectedDomain(name);
       setDomain(name);
     }
   };
@@ -317,7 +330,7 @@ const PromptOptimizeDetails = () => {
         {
           question: prompt,
           persona: persona,
-          promptDomain: domainValue, // 단일 선택
+          promptDomain: domainValue, // 단일 선택으로 변경
           templateKey: "editable",
         },
         {
@@ -326,13 +339,14 @@ const PromptOptimizeDetails = () => {
       );
 
       const data = response.data;
-      setPrompt(data.optimizedPrompt || "최적화된 프롬프트 예시");
-      setIsOptimized(true);
-      setPromptId(data.promptId); // ⚡ 여기에 promptId 저장
+      
+      setPromptId(data.promptId); // Context에 ID만 저장
+      setIsOptimized(true);       // 로컬 상태로 최적화 완료 표시
       console.log("최적화된 프롬프트:", data.promptId);
-      setDone(true); // 완료 표시
+      setDone(true);
 
-      navigate("/promptopt");
+      // 최적화된 프롬프트를 PromptOptimize로 바로 전달(최적화된 프롬프트 따로 저장 안함)
+      navigate("/promptopt", { state: { optimizedPrompt: data.optimizedPrompt, isOptimized: true } });
     } catch (err) {
       console.error(err);
       alert("프롬프트 최적화 중 오류가 발생했습니다.");
