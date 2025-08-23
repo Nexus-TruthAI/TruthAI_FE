@@ -13,11 +13,11 @@ const Container = styled.div`
   overflow: hidden;
 `;
 
-const Progress = styled.div<{ done?: boolean }>`
+const Progress = styled.div<{ $done?: boolean }>`
   height: 100%;
   background: #C2CCFD;
-  width: ${({ done }) => (done ? "100%" : "0%")};
-  animation: ${({ done }) => (done ? "none" : loadingAnimation)} 2s linear infinite;
+  width: ${({ $done }) => ($done ? "100%" : "0%")};
+  animation: ${({ $done }) => ($done ? "none" : loadingAnimation)} 2s linear infinite;
   transition: width 0.3s ease;
 `;
 
@@ -28,7 +28,7 @@ interface LoadingBarProps {
 const LoadingOverlay = ({ done }: LoadingBarProps) => {
   return (
     <Container>
-      <Progress done={done} />
+      <Progress $done={!!done} />
     </Container>
   );
 };

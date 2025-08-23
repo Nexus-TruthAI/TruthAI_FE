@@ -34,6 +34,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path='/login' element={<GoogleLoginPage/>}/>
         <Route path="/oauth/callback" element={<OAuthCallbackPage />}/>
         <Route path='/promptopt' element={<PromptOptimize/>}/>
+        <Route path="/promptopt/:id" element={<PromptOptimize />} />
         <Route path='/promptoptdetail' element={<PromptOptimizeDetails/>}/>
         <Route path='/crosscheckl' element={<CrossCheckL/>}/>
         <Route path='/crosschecka' element={<CrossCheckA/>}/>
