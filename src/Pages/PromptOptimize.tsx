@@ -112,6 +112,7 @@ const ScrollArea = styled.div`
   overflow-y: auto;
   margin-bottom: 0.5rem; // 버튼과 간격
 `
+
 const PromptInput = styled.textarea`
   font-family: 'SUIT';
   width: 100%;
@@ -245,11 +246,14 @@ const PromptOptimize = () => {
   const [showAlertModal, setShowAlertModal] = useState(false);
 
   
-  {/* ✅ passedPrompt가 있으면 우선 적용 */}
+  {/* ✅ passedPrompt가 있으면 우선 적용, 없으면 초기화 */}
   React.useEffect(() => {
     if (passedPrompt) {
       setPrompt(passedPrompt);
       setIsOptimized(true);
+    } else {
+      setPrompt("");
+      setIsOptimized(false);
     }
   }, [passedPrompt]);
 
@@ -286,10 +290,29 @@ const PromptOptimize = () => {
     navigate("/promptoptdetail", { state: { prompt } });
   };
 
+  // ```prompt와 ``` 제거하는 함수
+  const parsePromptForCrossCheck = (prompt: string) => {
+    // ```prompt로 시작하는 경우 제거
+    let parsed = prompt;
+    if (prompt.startsWith('```prompt')) {
+      parsed = prompt.substring(9); // ```prompt (9글자) 제거
+    } else if (prompt.startsWith('```')) {
+      parsed = prompt.substring(3); // ``` (3글자) 제거
+    }
+    
+    // 끝에 ```가 있는 경우 제거
+    if (parsed.endsWith('```')) {
+      parsed = parsed.substring(0, parsed.length - 3);
+    }
+    
+    return parsed.trim();
+  };
+
   { /*  교차검증 페이지로 이동   */ }
   const handleCrossValidation = () => {
     if (!isOptimized) return; // 혹시 안전장치
-    navigate("/crosscheckq", { state: { optimizedPrompt: prompt } });
+    const cleanedPrompt = parsePromptForCrossCheck(prompt);
+    navigate("/crosscheckq", { state: { optimizedPrompt: cleanedPrompt } });
   };
 
   /*   🛠️ 최적화된 프롬프트 관련 함수   */

@@ -323,10 +323,11 @@ const ModalButton = styled.button`
 const CrossCheckQ = () => {
     const location = useLocation();
     const optimizedPrompt = location.state?.optimizedPrompt; // 있으면 최적화된 프롬프트, 없으면 빈 문자열
+    const errorMessage = location.state?.error; // 에러 메시지가 있으면 표시
 
     const [selectedAIs, setSelectedAIs] = useState<string[]>([]);
     const [showModal, setShowModal] = useState(false);
-    const [modalType, setModalType] = useState<'noInput' | 'singleAI' | 'noAI' | null>(null);
+    const [modalType, setModalType] = useState<'noInput' | 'noAI' | 'singleAI' | 'error' | null>(errorMessage ? 'error' : null);
     const [promptText, setPromptText] = useState(optimizedPrompt || ""); // 최적화된 프롬프트가 있으면 사용, 없으면 빈 문자열
     const navigate = useNavigate();
 
@@ -352,7 +353,7 @@ const CrossCheckQ = () => {
         }
         
         try {
-            // API 호출을 위한 요청 데이터 준비 - 모델명을 백엔드가 기대하는 형태로 변환
+            // API 호출을 위한 요청 데이터 준비 - 백엔드 API 스펙에 맞게 모델명 매핑
             const modelMapping: { [key: string]: string } = {
                 'chatgpt': 'gpt',
                 'claude': 'claude',
@@ -362,10 +363,17 @@ const CrossCheckQ = () => {
             
             const mappedModels = selectedAIs.map(ai => modelMapping[ai] || ai);
             
+            // 백엔드 API 스펙에 맞는 요청 데이터 구성
             const request: LLMRequest = {
                 models: mappedModels,
                 question: promptText.trim()
             };
+
+            console.log('🚀 API 요청 데이터 준비 완료:');
+            console.log('  - 선택된 AI 모델들:', selectedAIs);
+            console.log('  - 매핑된 모델명:', mappedModels);
+            console.log('  - 질문:', promptText.trim());
+            console.log('  - 최종 요청 데이터:', JSON.stringify(request, null, 2));
 
             if (selectedAIs.length === 1) {
                 setModalType('singleAI');
@@ -392,7 +400,7 @@ const CrossCheckQ = () => {
         if (modalType === 'singleAI') {
             console.log("그대로 답변 확인하기 - API 요청 시작");
             
-            // API 호출을 위한 요청 데이터 준비 - 모델명을 백엔드가 기대하는 형태로 변환
+            // API 호출을 위한 요청 데이터 준비 - 백엔드 API 스펙에 맞게 모델명 매핑
             const modelMapping: { [key: string]: string } = {
                 'chatgpt': 'gpt',
                 'claude': 'claude',
@@ -402,10 +410,17 @@ const CrossCheckQ = () => {
             
             const mappedModels = selectedAIs.map(ai => modelMapping[ai] || ai);
             
+            // 백엔드 API 스펙에 맞는 요청 데이터 구성
             const request: LLMRequest = {
                 models: mappedModels,
                 question: promptText.trim()
             };
+            
+            console.log('🚀 단일 AI API 요청 데이터 준비 완료:');
+            console.log('  - 선택된 AI 모델:', selectedAIs);
+            console.log('  - 매핑된 모델명:', mappedModels);
+            console.log('  - 질문:', promptText.trim());
+            console.log('  - 최종 요청 데이터:', JSON.stringify(request, null, 2));
             
             navigate('/crosscheckl', { 
                 state: { 
@@ -513,6 +528,7 @@ const CrossCheckQ = () => {
                         <ModalTitle>
                             {modalType === 'noInput' ? '입력된 내용이 없습니다' : 
                              modalType === 'noAI' ? 'AI가 선택되지 않았습니다' : 
+                             modalType === 'error' ? '서버 오류가 발생했습니다' :
                              '환각여부 검증기능 사용불가'}
                         </ModalTitle>
                         <ModalContent>
@@ -522,6 +538,8 @@ const CrossCheckQ = () => {
                                 : modalType === 'noAI'
                                 ? `AI를 선택해야 답변을 생성할 수 있어요.
                                 하나 이상의 AI를 선택해 주세요.`
+                                : modalType === 'error'
+                                ? errorMessage || '서버에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.'
                                 : `하나의 AI를 선택하였기 때문에 답변 확인 후 
                                 환각 여부를 검증할 수 없습니다. 
                                 여러 AI를 선택하여 환각 여부까지 확인하시겠습니까?`
@@ -531,6 +549,10 @@ const CrossCheckQ = () => {
                             {modalType === 'noInput' || modalType === 'noAI' ? (
                                 <ModalButton className="exit" onClick={handleModalCancel}>
                                     돌아가기
+                                </ModalButton>
+                            ) : modalType === 'error' ? (
+                                <ModalButton className="exit" onClick={handleModalCancel}>
+                                    다시 시도하기
                                 </ModalButton>
                             ) : (
                                 <>

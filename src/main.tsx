@@ -21,6 +21,8 @@ import MainPage from './Pages/MainPage.tsx'
 import MyFolderPL from './Pages/MyFolderPL.tsx'
 import MyFolderCL from './Pages/MyFolderCL.tsx'
 import MyFolderPD from './Pages/MyFolderPD.tsx'
+import MyFolderCross from './Pages/MyFolderCross.tsx'
+import MyFolderPrompt from './Pages/MyFolderPrompt.tsx'
 
 
 createRoot(document.getElementById('root')!).render(
@@ -45,7 +47,9 @@ createRoot(document.getElementById('root')!).render(
         <Route path='/mainpage' element={<MainPage/>}/>
         <Route path='/myfolderpl' element={<MyFolderPL/>}/>
         <Route path='/myfoldercl' element={<MyFolderCL/>}/>
-        <Route path='/myfolder/:id' element={<MyFolderPD/>}/>
+        <Route path='/promptdetail/:id' element={<MyFolderPD/>}/>
+        <Route path='/myfoldercross/:id' element={<MyFolderCross/>}/>
+        <Route path='/myfolderprompt/:id' element={<MyFolderPrompt/>}/>
       </Routes>
     </BrowserRouter>
     </PromptProvider>

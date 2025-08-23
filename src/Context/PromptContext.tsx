@@ -12,6 +12,8 @@ interface PromptContextType {
   //setIsOptimized: (b: boolean) => void;
   promptId: number | null;
   setPromptId: (id: number | null) => void;
+  folderId: number | null;
+  setFolderId: (id: number | null) => void;
   // Sidebar
   //promptList: { promptId: number; summary: string }[];
   //setPromptList: (list: { promptId: number; summary: string }[]) => void;
@@ -25,6 +27,7 @@ export const PromptProvider = ({ children }: PropsWithChildren) => {
   //const [persona, setPersona] = useState("");
   //const [isOptimized, setIsOptimized] = useState(false);
   const [promptId, setPromptId] = useState<number | null>(null);
+  const [folderId, setFolderId] = useState<number | null>(null);
   // Sidebar
   //const [promptList, setPromptList] = useState<{ promptId: number; summary: string }[]>([]);
 
@@ -33,6 +36,8 @@ export const PromptProvider = ({ children }: PropsWithChildren) => {
       value={{
         promptId,
         setPromptId,
+        folderId,
+        setFolderId,
       }}
     >
       {children}
@@ -45,3 +50,4 @@ export const usePrompt = () => {
   if (!context) throw new Error("usePrompt must be used within a PromptProvider");
   return context;
 };
+

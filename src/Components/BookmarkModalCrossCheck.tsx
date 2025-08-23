@@ -99,11 +99,11 @@ const CancelButton = styled.button`
   cursor: pointer;
 `;
 
-const BookmarkModal = ({
-  onClose, // 모달창 닫기 함수
-  onSave,  // 저장 함수
-  selectedFolder,  // 선택된 폴더
-  setSelectedFolder  // 선택된 폴더 설정 함수
+const BookmarkModalCrossCheck = ({
+    onClose, // 모달창 닫기 함수
+    onSave,  // 저장 함수
+    selectedFolder,  // 선택된 폴더
+    setSelectedFolder  // 선택된 폴더 설정 함수
 }: {
   onClose: () => void;
   onSave: () => void;
@@ -114,36 +114,36 @@ const BookmarkModal = ({
   const [folders, setFolders] = useState<Folder[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 프롬프트 폴더만 조회
+  // 교차검증 폴더만 조회
   useEffect(() => {
-    const fetchPromptFolders = async () => {
+    const fetchCrosscheckFolders = async () => {
       try {
         setLoading(true);
-        const folderData = await getFolders('prompt');
+        const folderData = await getFolders('crosscheck');
         setFolders(folderData);
       } catch (error) {
-        console.error('프롬프트 폴더 조회 실패:', error);
+        console.error('교차검증 폴더 조회 실패:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPromptFolders();
+    fetchCrosscheckFolders();
   }, []);
 
   const handleSave = async () => {
     if (!selectedFolder || !promptId) {
-      alert('폴더와 프롬프트를 선택해주세요.');
+      alert('폴더와 교차검증을 선택해주세요.');
       return;
     }
 
     try {
-      await savePromptToFolder(selectedFolder.id, promptId, 'prompt');
-      alert(`${selectedFolder.name}에 프롬프트가 저장되었습니다.`);
+      await savePromptToFolder(selectedFolder.id, promptId, 'crosscheck');
+      alert(`${selectedFolder.name}에 교차검증이 저장되었습니다.`);
       onSave();
     } catch (error) {
-      console.error('프롬프트 저장 실패:', error);
-      alert('프롬프트 저장에 실패했습니다. 다시 시도해주세요.');
+      console.error('교차검증 저장 실패:', error);
+      alert('교차검증 저장에 실패했습니다. 다시 시도해주세요.');
     }
   };
 
@@ -155,7 +155,7 @@ const BookmarkModal = ({
           {loading ? (
             <div style={{ color: '#666', fontSize: '14px' }}>폴더 목록을 불러오는 중...</div>
           ) : folders.length === 0 ? (
-            <div style={{ color: '#666', fontSize: '14px' }}>프롬프트 폴더가 없습니다.</div>
+            <div style={{ color: '#666', fontSize: '14px' }}>교차검증 폴더가 없습니다.</div>
           ) : (
             folders.map((folder) => (
               <FolderCard
@@ -177,4 +177,4 @@ const BookmarkModal = ({
   );
 };
 
-export default BookmarkModal;
+export default BookmarkModalCrossCheck;
