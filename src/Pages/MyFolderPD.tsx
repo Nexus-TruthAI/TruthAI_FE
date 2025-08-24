@@ -375,7 +375,7 @@ const MyFolderPD = () => {
     useEffect(() => {
         const fetchFolders = async () => {
             try {
-                const folderData = await getFolders();
+                const folderData = await getFolders('prompt');
                 setFolders(folderData);
             } catch (error) {
                 console.error('폴더 목록 조회 실패:', error);

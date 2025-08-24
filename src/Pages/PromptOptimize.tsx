@@ -230,7 +230,7 @@ const PromptOptimize = () => {
   // 북마크 관련 상태
   const [showBookmarkModal, setShowBookmarkModal] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
-  const [folders, setFolders] = useState<Folder[]>([]);
+  const [_folders, setFolders] = useState<Folder[]>([]);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
 
@@ -384,7 +384,7 @@ const PromptOptimize = () => {
   React.useEffect(() => {
     const fetchFolders = async () => {
       try {
-        const folderData = await getFolders();
+        const folderData = await getFolders('prompt');
         setFolders(folderData);
       } catch (error) {
         console.error("폴더 목록 조회 실패:", error);
@@ -426,7 +426,6 @@ const PromptOptimize = () => {
                               />
                               {showBookmarkModal && (
                                 <BookmarkModal
-                                  folders={folders}
                                   onClose={() => setShowBookmarkModal(false)}
                                   onSave={() => {
                                     if (selectedFolder) {

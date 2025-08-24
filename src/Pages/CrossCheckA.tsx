@@ -8,6 +8,7 @@ import CopyIcon from "../Icons/Copy.svg";
 import BookmarkIcon from "../Icons/BookmarkEmpty.png";
 import BookmarkFillIcon from "../Icons/BookmarkFill.png";
 import BookmarkModal from "../Components/BookmarkModalCrossCheck";
+//import type { Folder } from "../Components/BookmarkModalCrossCheck";
 import type { LLMResponse } from "../services/llmService";
 import { usePrompt } from "../Context/PromptContext";
 import { getPromptSidebarDetail, type PromptSidebarDetail } from "../services/folderService";
@@ -286,9 +287,9 @@ const CrossCheckA = () => {
     const [activeTab, setActiveTab] = useState('chatgpt');
     const [showModal, setShowModal] = useState(false);
     const [showBookmarkModal, setShowBookmarkModal] = useState(false);
-    const [selectedFolder, setSelectedFolder] = useState<PromptSidebarDetail | null>(null);
+    const [selectedFolder, setSelectedFolder] = useState<any | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [folders, _setFolders] = useState<PromptSidebarDetail[]>([]);
+    const [_folders, _setFolders] = useState<PromptSidebarDetail[]>([]);
     const [_promptDetail, setPromptDetail] = useState<PromptSidebarDetail | null>(null);
     
     // 각 AI별 북마크 상태
@@ -538,11 +539,10 @@ const CrossCheckA = () => {
 
             {showBookmarkModal && (
                 <BookmarkModal
-                    folders={folders}
                     onClose={handleBookmarkModalClose}
                     onSave={handleBookmarkSave}
                     selectedFolder={selectedFolder}
-                    setSelectedFolder={setSelectedFolder}
+                    setSelectedFolder={(folder) => setSelectedFolder(folder)}
                 />
             )}
         </Wrapper>  
