@@ -8,6 +8,7 @@ import CopyIcon from "../Icons/Copy.svg";
 import BookmarkIcon from "../Icons/BookmarkEmpty.png";
 import BookmarkFillIcon from "../Icons/BookmarkFill.png";
 import BookmarkModal from "../Components/BookmarkModalCrossCheck";
+//import type { Folder } from "../Components/BookmarkModalCrossCheck";
 import type { LLMResponse } from "../services/llmService";
 import { usePrompt } from "../Context/PromptContext";
 import { type Folder } from "../services/folderService";
@@ -522,7 +523,7 @@ const CrossCheckA = () => {
                     onClose={handleBookmarkModalClose}
                     onSave={handleBookmarkSave}
                     selectedFolder={selectedFolder}
-                    setSelectedFolder={setSelectedFolder}
+                    setSelectedFolder={(folder) => setSelectedFolder(folder)}
                 />
             )}
         </Wrapper>  

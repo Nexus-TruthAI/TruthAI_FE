@@ -71,7 +71,7 @@ const GoogleLoginButton = styled.button`
 const GoogleLoginPage = () => {
 
   const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-  const REDIRECT_URI = 'http://localhost:5173/oauth/callback';
+  const REDIRECT_URI = 'https://truth-ai-two.vercel.app/oauth/callback';
 
   const handleLogin = () => {
     console.log("구글 로그인 시도");

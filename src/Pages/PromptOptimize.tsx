@@ -230,7 +230,7 @@ const PromptOptimize = () => {
   // 북마크 관련 상태
   const [showBookmarkModal, setShowBookmarkModal] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
-  const [folders, setFolders] = useState<Folder[]>([]);
+  const [_folders, setFolders] = useState<Folder[]>([]);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
 
