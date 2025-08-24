@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useState}from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { usePrompt } from "../Context/PromptContext";
+
+import api from "../api";
 
 const Wrapper = styled.div`
     margin: 0 2rem 2rem 2rem;
@@ -50,6 +53,7 @@ const PromptItem = styled.div`
     text-overflow: ellipsis;
     text-align: left;
     width: 100%;
+    cursor: pointer;
 `;
 
 const NewBtn = styled.div`
@@ -73,8 +77,55 @@ const Sidebar = () => {
     const prompt_text = "새로운 프롬프트 생성하기 >";
     const cross_text = "새로 AI 교차검증하기 >";
     const navigate = useNavigate();
+    //const [prompts, setPrompts] = useState<{promptId: number, summary: string}[]>([]);
+    const { setPromptId } = usePrompt();
+    const [promptList, setPromptList] = useState<{promptId: number, summary: string}[]>([]);
+    const [crossCheckList, setCrossCheckList] = useState<{promptId: number, summary: string}[]>([]);
 
-    const prompts = Array(5).fill("최근 보고서 요약 요청").map((text, i) => `${text} ${i + 1}`);
+    //const prompts = Array(5).fill("최근 보고서 요약 요청").map((text, i) => `${text} ${i + 1}`);
+
+    // Todo:
+    // 현재 api 자체는 잘 되는데 프롬프트 생성받으면 자동으로 처리되고 있는건지가 불분명
+    // 프롬프트와 교차검증이 따로 오는지도 불분명
+
+    React.useEffect(() => {
+        const fetchSidebarPrompts = async () => {
+        try {
+            const res = await api.get("/prompt/side-bar/list");
+            setPromptList(res.data || []);
+        } catch (err) {
+            console.error("사이드바 조회 실패", err);
+        }
+        };
+
+        fetchSidebarPrompts();
+    }, [setPromptList]);
+
+    // 상세 조회 후 페이지 이동
+    const handlePromptClick = async (promptId: number) => {
+        try {
+        const res = await api.get("/prompt/side-bar/details", {
+            params: { promptId },
+        });
+
+        const detail = res.data; 
+        // detail: { promptId, originalPrompt, optimizedPrompt, summary, answerDto }
+
+        setPromptId(promptId);
+
+        navigate(`/promptopt/${promptId}`, {
+            state: {
+            originalPrompt: detail.originalPrompt,
+            optimizedPrompt: detail.optimizedPrompt,
+            isOptimized: !!detail.optimizedPrompt,
+            answerDto: detail.answerDto,
+            },
+        });
+        } catch (err) {
+        console.error("프롬프트 상세 조회 실패", err);
+        }
+    };
+
 
     return (
         <Wrapper>
@@ -82,19 +133,28 @@ const Sidebar = () => {
                 <TitleText>내 프롬프트</TitleText>
                 <PromptListContainer>
                     <PromptList>
-                        {prompts.map((item, idx) => (
-                            <PromptItem key={idx}>{item}</PromptItem>
+                        {promptList.map((item) => (
+                            <PromptItem
+                                key={item.promptId}
+                                onClick={() => handlePromptClick(item.promptId)}
+                            >
+                                {item.summary}
+                            </PromptItem>
                         ))}
                     </PromptList>
                 </PromptListContainer>
-                <NewBtn onClick={() => navigate('/promptopt')}>{prompt_text}</NewBtn>
+                <NewBtn 
+                onClick={() => navigate('/promptopt', { state: { reset: true } })}
+                >
+                {prompt_text}
+                </NewBtn>
             </PromptWrapper>
             <CrossChecktWrapper>
                 <TitleText>교차검증</TitleText>
                 <PromptListContainer>
                     <PromptList>
-                        {prompts.map((item, idx) => (
-                            <PromptItem key={idx}>{item}</PromptItem>
+                        {promptList.map((item) => (
+                            <PromptItem key={item.promptId}>{item.summary}</PromptItem>
                         ))}
                     </PromptList>
                 </PromptListContainer>

@@ -4,6 +4,9 @@ import Background from "../Icons/BackgroundBasic.png";
 import Topbar from "../Components/Topbar";
 import RoundArrowBtn from "../Components/RoundArrowBtn";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
+
+import api from "../api";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -246,7 +249,6 @@ const ModalButton = styled.button`
         }
     }
 `
-
 const Persona = styled.div`
     width: 100%;
     font-size: 14px;
@@ -254,14 +256,25 @@ const Persona = styled.div`
     color: #CECECE;
 `
 
+interface JwtPayload {
+  sub: string;
+  username: string;
+  email: string;
+  iat: number;
+  exp: number;
+}
+
+
 
 const MyPage = () => {
     const [profileImage, setProfileImage] = React.useState<string | null>(null);
     const [showModal, setShowModal] = React.useState(false);
     const [showProfileEditModal, setShowProfileEditModal] = React.useState(false);
-    const [userInfo, setUserInfo] = React.useState('');
-    const [persona, setPersona] = React.useState('AI가 필요한 사람');
-    
+    const [userInfo, setUserInfo] = React.useState(''); // 유저가 입력하는 페르소나 값 받는 임시 상태 값
+    const [persona, setPersona] = React.useState('');
+    const [userName, setUserName] = React.useState('');
+    const [email, setEmail] = React.useState('');
+
     const navigate = useNavigate();
 
     const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -282,14 +295,23 @@ const MyPage = () => {
         setShowProfileEditModal(true);
     };
 
-    const handleProfileEditConfirm = () => {
-        localStorage.setItem('userInfo', userInfo);
-        setPersona(userInfo || 'AI가 필요한 사람');
-        setShowProfileEditModal(false);
-        setUserInfo('');
-        
-        // TODO: Send to backend
-        // sendToBackend({ userInfo, persona: userInfo || 'AI가 필요한 사람' });
+    const handleProfileEditConfirm = async () => {
+        try {
+            // 1. 백엔드 API 요청
+            const res = await api.post("/auth/persona", {
+                persona: userInfo || "AI가 필요한 사람",
+            });
+
+            // 2. 성공 시 localStorage 및 state 갱신
+            setPersona(userInfo || "AI가 필요한 사람");
+            setShowProfileEditModal(false);
+            setUserInfo("");
+
+            console.log("페르소나 저장 성공:", res.data);
+        } catch (err) {
+            console.error("페르소나 저장 실패:", err);
+            alert("페르소나 저장에 실패했습니다. 다시 시도해주세요.");
+        }
     };
 
     const handleProfileEditCancel = () => {
@@ -305,16 +327,65 @@ const MyPage = () => {
         setShowModal(false);
     };
 
-    React.useEffect(() => {
-        const savedImage = localStorage.getItem('profileImage');
-        if (savedImage) {
-            setProfileImage(savedImage);
+    const handleLogout = async () => {
+        try {
+            await api.post("/auth/logout");
+            // 클라이언트 측 토큰 제거
+            sessionStorage.removeItem("accessToken");
+            sessionStorage.removeItem("refreshToken");
+            // 메인페이지나 로그인 페이지로 이동
+            navigate("/login");
+        } catch (error) {
+            console.error("로그아웃 실패", error);
         }
-        
-        const savedUserInfo = localStorage.getItem('userInfo');
-        if (savedUserInfo) {
-            setUserInfo(savedUserInfo);
-            setPersona(savedUserInfo);
+    };
+
+
+    React.useEffect(() => {
+        const token = sessionStorage.getItem("accessToken");
+
+        if (!token) {
+        alert("로그인이 필요합니다.");
+        navigate("/login");
+        return;
+        }
+
+        try {
+            const decoded = jwtDecode<JwtPayload>(token);
+            const now = Math.floor(Date.now() / 1000);
+
+            if (decoded.exp < now) {
+                // 🔹 토큰 만료
+                alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+                sessionStorage.removeItem("accessToken");
+                navigate("/login");
+            } else {
+                // 🔹 토큰 유효
+                console.log("토큰 유효:", token);
+
+                // 유저 정보 세팅
+                setUserName(decoded.username);
+                setEmail(decoded.email);
+
+                // persona 가져오기
+                api.get("/auth/persona")
+                    .then(res => {
+                    setPersona(res.data.persona);
+                    })
+                    .catch(err => {
+                    console.error("페르소나 불러오기 실패:", err);
+                    });
+                
+                // 사용자 프로필 이미지 가져오기
+                const savedImage = localStorage.getItem('profileImage');
+                    if (savedImage) {
+                        setProfileImage(savedImage);
+                    }
+            }
+            } catch (err) {
+            console.error("토큰 decode 실패:", err);
+            sessionStorage.removeItem("accessToken");
+            navigate("/login");
         }
     }, []);
 
@@ -349,9 +420,9 @@ const MyPage = () => {
                         </ProfileImage>
                     </label>
                                          <div>
-                         <Persona>{persona}</Persona>
-                         <Profile>사용자</Profile>
-                         <UserName>user@gmail.com</UserName>
+                         <Persona>{persona !== null ? persona : " "}</Persona>
+                         <Profile>{userName}</Profile>
+                         <UserName>{email}</UserName>
                      </div>
                     <RoundArrowBtn fontSize="12px" showArrow={false} height="2.5rem" onClick={handleProfileEdit}>내 정보 수정하기 &nbsp; {`>`}</RoundArrowBtn>
                 </ProfileWrapper>
@@ -367,7 +438,7 @@ const MyPage = () => {
                     <LinkSection>
                         <LinkItem>구독 관리</LinkItem>
                         <LinkItem onClick={() => {navigate('/question')}}>문의하기</LinkItem>
-                        <LinkItem onClick={() => {}}>로그아웃</LinkItem>
+                        <LinkItem onClick={() => {handleLogout()}}>로그아웃</LinkItem>
                         <LinkItem onClick={() => {}} $isRed>탈퇴하기</LinkItem>
                     </LinkSection>
                 </SubWrapper>

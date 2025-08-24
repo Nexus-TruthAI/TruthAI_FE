@@ -1,7 +1,8 @@
-import axios from "axios";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate} from "react-router-dom";
 import { useEffect } from "react";
 import styled from "styled-components";
+
+import api from "../api";
 
 
 const Wrapper = styled.div`
@@ -25,19 +26,41 @@ const OAuthCallback = () => {
 
     const fetchLogin = async () => {
       try {
-        // token 으로 인가 코드 전달
         console.log("로그인 요청 중...");
-        const res = await axios.get("http://3.36.75.39:8080/auth/auth/login", {
-          params: { token: code },
-          responseType: "text", // JWT가 문자열일 가능성 대비
-        });
+
+        // 인가 코드 POST로 요청
+        const res = await api.post('/auth/login', {
+          token: code,
+          redirectUri: 'http://localhost:5173/oauth/callback', // 필요하면
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
 
         console.log("✅ 백엔드 응답 (JWT):", res.data);
 
-        const jwt = res.data; // JWT 문자열
-        if (jwt) {
-          localStorage.setItem("token", jwt); // 토큰 저장
-          navigate("/feat-choice");           // 기능 선택 페이지로 이동
+        const { accessToken, refreshToken, user } = res.data;
+
+        if (accessToken && refreshToken) {
+          // 세션 스토리지에 토큰 저장
+          sessionStorage.setItem('accessToken', accessToken);
+          sessionStorage.setItem('refreshToken', refreshToken);
+          
+          // 사용자 정보가 있으면 localStorage에 저장
+          if (user) {
+            if (user.profileImage) {
+              localStorage.setItem('profileImage', user.profileImage);
+            }
+            if (user.name) {
+              localStorage.setItem('userName', user.name);
+            }
+            if (user.email) {
+              localStorage.setItem('userEmail', user.email);
+            }
+          }
+
+          navigate("/mainpage");
         } else {
           console.warn("토큰 없음", res.data);
         }
@@ -47,7 +70,7 @@ const OAuthCallback = () => {
     };
 
     fetchLogin();
-  }, [code]);
+  }, [code, navigate]);
 
   return (
     <Wrapper>

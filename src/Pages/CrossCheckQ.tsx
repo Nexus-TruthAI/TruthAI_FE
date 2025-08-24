@@ -1,10 +1,14 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import styled from "styled-components";
+import { useNavigate, useLocation } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
+
+import type { LLMRequest } from "../services/llmService";
+
 import Topbar from "../Components/Topbar";
 import Sidebar from "../Components/Sidebar";
 import Background from "../Icons/BackgroundBasic.png";
 import CircleArrowBtn from "../Icons/CircleArrowBtn.svg";
-import { useNavigate } from "react-router-dom";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -65,6 +69,37 @@ const PromptInputWrapper = styled.div`
     width: 100%;
     margin-bottom: 1rem;
 `
+const ScrollArea = styled.div`
+    width: 50rem;
+    height: 10.25rem; 
+    padding: 1.25rem 4rem 1.25rem 1.5rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    border: none;
+    resize: none;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.6;
+    box-sizing: border-box;
+    box-shadow: 
+        0 4px 6px rgba(0, 0, 0, 0.1),
+        0 1px 3px rgba(0, 0, 0, 0.08);
+    
+    /* 가로 스크롤 없이 자동 줄바꿈 + 세로 스크롤 */
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    /* 줄바꿈 강제 */
+    white-space: pre-wrap;
+    word-break: break-word;
+
+    /* 내부 마크다운 블록 요소에도 적용 */
+    & > * {
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+`;
 
 const PromptInput = styled.textarea`
     font-family: 'SUIT';
@@ -286,10 +321,14 @@ const ModalButton = styled.button`
 `
 
 const CrossCheckQ = () => {
+    const location = useLocation();
+    const optimizedPrompt = location.state?.optimizedPrompt; // 있으면 최적화된 프롬프트, 없으면 빈 문자열
+    const errorMessage = location.state?.error; // 에러 메시지가 있으면 표시
+
     const [selectedAIs, setSelectedAIs] = useState<string[]>([]);
     const [showModal, setShowModal] = useState(false);
-    const [modalType, setModalType] = useState<'noInput' | 'singleAI' | 'noAI' | null>(null);
-    const [promptText, setPromptText] = useState('');
+    const [modalType, setModalType] = useState<'noInput' | 'noAI' | 'singleAI' | 'error' | null>(errorMessage ? 'error' : null);
+    const [promptText, setPromptText] = useState(optimizedPrompt || ""); // 최적화된 프롬프트가 있으면 사용, 없으면 빈 문자열
     const navigate = useNavigate();
 
     const handleCheckboxChange = (value: string) => {
@@ -300,7 +339,7 @@ const CrossCheckQ = () => {
         );
     };
 
-    const handleSendClick = () => {
+    const handleSendClick = async () => {
         if (!promptText.trim()) {
             setModalType('noInput');
             setShowModal(true);
@@ -313,17 +352,45 @@ const CrossCheckQ = () => {
             return;
         }
         
-        if (selectedAIs.length === 1) {
-            setModalType('singleAI');
-            setShowModal(true);
-        } else if (selectedAIs.length > 1) {
-            console.log("여러 AI 선택됨");
-            navigate('/crosscheckl', { 
-                state: { 
-                    selectedAIs, 
-                    promptText 
-                } 
-            });
+        try {
+            // API 호출을 위한 요청 데이터 준비 - 백엔드 API 스펙에 맞게 모델명 매핑
+            const modelMapping: { [key: string]: string } = {
+                'chatgpt': 'gpt',
+                'claude': 'claude',
+                'gemini': 'gemini',
+                'perplexity': 'perplexity'
+            };
+            
+            const mappedModels = selectedAIs.map(ai => modelMapping[ai] || ai);
+            
+            // 백엔드 API 스펙에 맞는 요청 데이터 구성
+            const request: LLMRequest = {
+                models: mappedModels,
+                question: promptText.trim()
+            };
+
+            console.log('🚀 API 요청 데이터 준비 완료:');
+            console.log('  - 선택된 AI 모델들:', selectedAIs);
+            console.log('  - 매핑된 모델명:', mappedModels);
+            console.log('  - 질문:', promptText.trim());
+            console.log('  - 최종 요청 데이터:', JSON.stringify(request, null, 2));
+
+            if (selectedAIs.length === 1) {
+                setModalType('singleAI');
+                setShowModal(true);
+            } else if (selectedAIs.length > 1) {
+                console.log("여러 AI 선택됨 - API 호출 시작");
+                navigate('/crosscheckl', { 
+                    state: { 
+                        selectedAIs, 
+                        promptText,
+                        request 
+                    } 
+                });
+            }
+        } catch (error) {
+            console.error('Error preparing request:', error);
+            // 에러 처리 (필요시 모달 표시)
         }
     };
 
@@ -331,11 +398,35 @@ const CrossCheckQ = () => {
         setShowModal(false);
         setModalType(null);
         if (modalType === 'singleAI') {
-            console.log("그대로 답변 확인하기 - 다른 페이지로 이동");
+            console.log("그대로 답변 확인하기 - API 요청 시작");
+            
+            // API 호출을 위한 요청 데이터 준비 - 백엔드 API 스펙에 맞게 모델명 매핑
+            const modelMapping: { [key: string]: string } = {
+                'chatgpt': 'gpt',
+                'claude': 'claude',
+                'gemini': 'gemini',
+                'perplexity': 'perplexity'
+            };
+            
+            const mappedModels = selectedAIs.map(ai => modelMapping[ai] || ai);
+            
+            // 백엔드 API 스펙에 맞는 요청 데이터 구성
+            const request: LLMRequest = {
+                models: mappedModels,
+                question: promptText.trim()
+            };
+            
+            console.log('🚀 단일 AI API 요청 데이터 준비 완료:');
+            console.log('  - 선택된 AI 모델:', selectedAIs);
+            console.log('  - 매핑된 모델명:', mappedModels);
+            console.log('  - 질문:', promptText.trim());
+            console.log('  - 최종 요청 데이터:', JSON.stringify(request, null, 2));
+            
             navigate('/crosscheckl', { 
                 state: { 
                     selectedAIs, 
-                    promptText 
+                    promptText,
+                    request 
                 } 
             });
         }
@@ -356,11 +447,22 @@ const CrossCheckQ = () => {
                     <ContentWrapper>
                         <PromptContainer>
                             <PromptInputWrapper>
-                                <PromptInput
+                                {optimizedPrompt ? (
+                                    <ScrollArea>
+                                        <ReactMarkdown children={promptText} />
+                                    </ScrollArea>
+                                ) : (
+                                    <PromptInput
                                     placeholder="프롬프트를 입력해주세요."
                                     value={promptText}
                                     onChange={(e) => setPromptText(e.target.value)}
-                                />
+                                    />
+                                )}
+                                {/*<PromptInput
+                                    placeholder="프롬프트를 입력해주세요."
+                                    value={promptText}
+                                    onChange={(e) => setPromptText(e.target.value)}
+                                />*/}
                                 <SendBtn src={CircleArrowBtn} onClick={handleSendClick} />
                             </PromptInputWrapper>
                             
@@ -425,6 +527,7 @@ const CrossCheckQ = () => {
                         <ModalTitle>
                             {modalType === 'noInput' ? '입력된 내용이 없습니다' : 
                              modalType === 'noAI' ? 'AI가 선택되지 않았습니다' : 
+                             modalType === 'error' ? '서버 오류가 발생했습니다' :
                              '환각여부 검증기능 사용불가'}
                         </ModalTitle>
                         <ModalContent>
@@ -434,6 +537,8 @@ const CrossCheckQ = () => {
                                 : modalType === 'noAI'
                                 ? `AI를 선택해야 답변을 생성할 수 있어요.
                                 하나 이상의 AI를 선택해 주세요.`
+                                : modalType === 'error'
+                                ? errorMessage || '서버에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.'
                                 : `하나의 AI를 선택하였기 때문에 답변 확인 후 
                                 환각 여부를 검증할 수 없습니다. 
                                 여러 AI를 선택하여 환각 여부까지 확인하시겠습니까?`
@@ -443,6 +548,10 @@ const CrossCheckQ = () => {
                             {modalType === 'noInput' || modalType === 'noAI' ? (
                                 <ModalButton className="exit" onClick={handleModalCancel}>
                                     돌아가기
+                                </ModalButton>
+                            ) : modalType === 'error' ? (
+                                <ModalButton className="exit" onClick={handleModalCancel}>
+                                    다시 시도하기
                                 </ModalButton>
                             ) : (
                                 <>

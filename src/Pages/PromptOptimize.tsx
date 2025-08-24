@@ -1,17 +1,24 @@
-import React from "react";
-import { useState } from "react";
 import styled from "styled-components";
+import React, { useState } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
+
+import { usePrompt } from "../Context/PromptContext";
+import { getFolders, type Folder } from "../services/folderService";
+import api from "../api";
+
 import Topbar from "../Components/Topbar";
 import Sidebar from "../Components/Sidebar";
-import LoadingBar from "../Components/LoadingOverlay";
 import BookmarkModal from "../Components/BookmarkModal";
 import AlertModal from "../Components/AlertModal";
+
 import Background from "../Icons/BackgroundBasic.png";
 import CircleArrowBtn from "../Icons/CircleArrowBtn.svg";
 import BookmarkEmpIcon from "../Icons/BookmarkEmpty.png";
 import BookmarkFillIcon from "../Icons/BookmarkFill.png"
 import RefreshIcon from "../Icons/Refresh.png";
 import CopyIcon from "../Icons/Copy.png";
+import ArrowRight from "../Icons/ArrowRight.svg";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -65,40 +72,82 @@ const ContentWrapper = styled.div`
     margin-bottom: 3.5rem;
 `
 const PromptWrapper = styled.div`
-    position: relative;
-    width: 100%;
-    height: auto;
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 `
+const OptPrompt = styled.div`
+  width: 100%;
+  height: 10rem;
+  padding: 1rem 1rem 2rem 1rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 20px;
+  resize: none;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  box-shadow: 
+      0 1px 1px rgba(0, 0, 0, 0.15),
+      0 2px 2px rgba(0, 0, 0, 0.15),
+      0 4px 4px rgba(0, 0, 0, 0.15),
+      0 8px 8px rgba(0, 0, 0, 0.15);
+
+  &::placeholder {
+      font-family: 'SUIT';
+      color: #EFEFEF;
+      font-size: 16px;
+      font-weight: 400;
+  }
+
+  &:focus {
+      outline: none;
+  }
+`
+const ScrollArea = styled.div`
+  width: 100%;
+  height: 9rem;
+  overflow-y: auto;
+  margin-bottom: 0.5rem; // 버튼과 간격
+`
+
 const PromptInput = styled.textarea`
-    font-family: 'SUIT';
-    width: 100%;
-    height: 7.25rem;
-    padding: 1rem 1rem 2rem 1rem;
-    background-color: rgba(255, 255, 255, 0.1);
-    border: none;
-    border-radius: 20px;
-    resize: none;
-    color: #fff;
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 1.5;
-    box-shadow: 
-        0 1px 1px rgba(0, 0, 0, 0.15),
-        0 2px 2px rgba(0, 0, 0, 0.15),
-        0 4px 4px rgba(0, 0, 0, 0.15),
-        0 8px 8px rgba(0, 0, 0, 0.15);
+  font-family: 'SUIT';
+  width: 100%;
+  height: 7.25rem;
+  padding: 1rem 1rem 3rem 1rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 20px;
+  resize: none;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  box-shadow: 
+      0 1px 1px rgba(0, 0, 0, 0.15),
+      0 2px 2px rgba(0, 0, 0, 0.15),
+      0 4px 4px rgba(0, 0, 0, 0.15),
+      0 8px 8px rgba(0, 0, 0, 0.15);
 
-    &::placeholder {
-        font-family: 'SUIT';
-        color: #EFEFEF;
-        font-size: 16px;
-        font-weight: 400;
-    }
+  &::placeholder {
+      font-family: 'SUIT';
+      color: #EFEFEF;
+      font-size: 16px;
+      font-weight: 400;
+  }
 
-    &:focus {
-        outline: none;
-    }
-`;
+  &:focus {
+      outline: none;
+  }
+`
+const OptimizedBtnGroup = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+`
 const SendBtn = styled.img`
     position: absolute;
     bottom: 2rem;
@@ -106,19 +155,19 @@ const SendBtn = styled.img`
     width: 2.2rem;
     height: 2.2rem;
     cursor: pointer;
-`;
-const OptimizedBtnGroup = styled.div`
-    position: absolute;
-    bottom: 2rem;
-    right: 0.1rem;
-    display: flex;
-    gap: 0.5rem;
-`;
+    &:hover {
+        transform: scale(1.1);
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
+`
 const IconBtn = styled.img`
     width: 1.5rem;
     height: 1.5rem;
     cursor: pointer;
-`;
+`
 const ExampleWrapper = styled.div`
     display: flex;
     flex-direction: row;
@@ -140,64 +189,182 @@ const ExampleBox = styled.div`
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-`;
+`
+const CrossValidationBtn = styled.div`
+  display: inline-flex;
+  padding: 20px 32px;
+  align-items: flex-start;
+  gap: 12px;
+  border-radius: 100px;
+  background: #fff;
+  color: #000;        // 흰색 배경이면 글자는 검정색
+  font-weight: 600;
+
+  &:hover {
+    background: #f0f0f0; // 호버 시 살짝 밝게
+  }
+  cursor: pointer;
+`
+const ArrowIcon = styled.img`
+  width: 1.4rem;
+  height: 1.4rem;
+  filter: invert(1) brightness(0); // 완전 검정으로
+`
+
+
 
 const PromptOptimize = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const reset = Boolean(location.state?.reset); // ✅ reset flag
 
-  const [promptText, setPromptText] = useState("");  // 프롬프트 입력 / 결과 공용
-  const [originalPrompt, setOriginalPrompt] = useState(""); // 재생성용 원본 프롬프트
-  const [isLoading, setIsLoading] = useState(false);  // 로딩 상태 여부
-  const [isOptimized, setIsOptimized] = useState(false);  // 최적화 상태 여부
+  // navigate로 전달된 값 가져오기
+  const passedPrompt = location.state?.optimizedPrompt || "";
+  const [isOptimized, setIsOptimized] = useState(location.state?.isOptimized || false);
 
+  const { promptId, setPromptId } = usePrompt();
+  const { id } = useParams(); // URL : /promptopt/:id
+
+  // URL의 id를 항상 최우선으로, 그게 없으면 reset일 때는 context id 무시
+  const urlId = id ? Number(id) : null;
+  const currentPromptId = urlId ?? (reset ? null : promptId);
+
+  // ✅ 로컬 상태
+  const [prompt, setPrompt] = useState("");
+  // 일단 로케이션에서 가져오는걸로 const [isOptimized, setIsOptimized] = useState(false);
+  const [originalPrompt, setOriginalPrompt] = useState(""); 
+  const [isLoading, setIsLoading] = useState(false);
+
+  // 북마크 관련 상태
   const [showBookmarkModal, setShowBookmarkModal] = useState(false);
-  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [isBookmarked, setIsBookmarked] = useState(false);
-
   const [showAlertModal, setShowAlertModal] = useState(false);
 
-  { /* 🛠️ */ }
+  
+  // ✅ reset이면 로컬 상태 + context promptId 초기화
+  React.useEffect(() => {
+    if (reset) {
+      setPrompt("");
+      setIsOptimized(false);
+      setOriginalPrompt("");
+      setIsBookmarked(false);
+      setSelectedFolder(null);
+      setPromptId(null); // ⭐ 컨텍스트 id까지 비워서 fetch 방지
+    }
+  }, [reset, setPromptId]);
+
+  // ✅ passedPrompt가 있으면 그걸로 채우고, 없으면 빈값 유지(리셋 케이스 대비)
+  React.useEffect(() => {
+    if (passedPrompt) {
+      setPrompt(passedPrompt);
+      setIsOptimized(true);
+    } else if (reset) {
+      // 이미 위 reset effect에서 비움
+    } else {
+      // 아무 것도 안 함 (fetch가 처리)
+    }
+  }, [passedPrompt, reset]);
+
+  // ✅ 사이드바에서 타고 올 때만 API 조회 (reset/passedPrompt가 있으면 조회 금지)
+  React.useEffect(() => {
+    if (!currentPromptId || passedPrompt || reset) return;
+
+    const fetchPrompt = async () => {
+      try {
+        const res = await api.get(`/prompt/${currentPromptId}`);
+        setPrompt(res.data.optimizedPrompt ?? res.data.originalPrompt);
+        setOriginalPrompt(res.data.originalPrompt);
+        setIsOptimized(!!res.data.optimizedPrompt);
+      } catch (err) {
+        console.error("프롬프트 조회 실패", err);
+      }
+    };
+
+    fetchPrompt();
+  }, [currentPromptId, passedPrompt, reset]);
+
+
+  {/* ✅ passedPrompt가 있으면 우선 적용, 없으면 초기화
+  React.useEffect(() => {
+    if (passedPrompt) {
+      setPrompt(passedPrompt);
+      setIsOptimized(true);
+    } else {
+      setPrompt("");
+      setIsOptimized(false);
+    }
+  }, [passedPrompt]);*/}
+
+  {/* ✅ 사이드바에서 타고 넘어올 때 API 조회 (passedPrompt 없을 때만)
+  React.useEffect(() => {
+    if (!currentPromptId || passedPrompt) return;
+
+    const fetchPrompt = async () => {
+      try {
+        const res = await api.get(`/prompt/${currentPromptId}`);
+        setPrompt(res.data.optimizedPrompt ?? res.data.originalPrompt);
+        setOriginalPrompt(res.data.originalPrompt);
+        setIsOptimized(!!res.data.optimizedPrompt);
+      } catch (err) {
+        console.error("프롬프트 조회 실패", err);
+      }
+    };
+
+    fetchPrompt();
+  }, [currentPromptId, passedPrompt]); */}
+
+
+  { /* 프롬프트 예시 클릭 */ }
   const handleExampleClick = (text: string) => {
-    setPromptText(text);
+    setPrompt(text);
   };
 
-  { /* 🛠️ API 연결 필요 */ }
+  { /* 버튼 클릭 */ }
   const handleSend = async () => {
-    if (!promptText.trim()) {
+    if (!prompt.trim()) {
       setShowAlertModal(true);
       return;
     }
-
-    setIsLoading(true);
-
-    try {
-      setOriginalPrompt(promptText); // 백업
-      // 2초 대기 (API 대신)
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // 여기서 실제 API 대신 로직 실행했다고 가정
-      console.log("프롬프트 최적화되었다고 가정:", promptText);
-
-      const result = "최적화된 프롬프트 예시입니다...최적화된 프롬프트 예시입니다...최적화된 프롬프트 예시입니다...최적화된 프롬프트 예시입니다...최적화된 프롬프트 예시입니다...최적화된 프롬프트 예시입니다...";
-      setPromptText(result);         // ✅ 덮어쓰기
-      setIsOptimized(true);          // 상태 전환
-    } catch (err) {
-      console.error("에러 발생:", err);
-    } finally {
-      setIsLoading(false); // 로딩 종료
-    }
+    navigate("/promptoptdetail", { state: { prompt } });
   };
 
+  {/** ```prompt와 ``` 제거하는 함수 */}
+    const parsePromptForCrossCheck = (prompt: string) => {
+    // ```prompt로 시작하는 경우 제거
+    let parsed = prompt;
+    if (prompt.startsWith('```prompt')) {
+      parsed = prompt.substring(9); // ```prompt (9글자) 제거
+    } else if (prompt.startsWith('```')) {
+      parsed = prompt.substring(3); // ``` (3글자) 제거
+    }
+    
+    // 끝에 ```가 있는 경우 제거
+    if (parsed.endsWith('```')) {
+      parsed = parsed.substring(0, parsed.length - 3);
+    }
+    
+    return parsed.trim();
+  };
 
-  /*   🛠️ 최적화된 프롬프트 관련 함수   */
+  { /*  교차검증 페이지로 이동   */ }
+  const handleCrossValidation = () => {
+    if (!isOptimized) return; // 혹시 안전장치
+    const cleanedPrompt = parsePromptForCrossCheck(prompt);
+    navigate("/crosscheckq", { state: { optimizedPrompt: cleanedPrompt } });
+  };
+
+  {/*   🛠️ 최적화된 프롬프트 관련 함수   */}
   // 1. 복사 기능
   const handleCopy = () => {
-    if (isOptimized && promptText) {
-      navigator.clipboard.writeText(promptText);
+    if (isOptimized && prompt) {
+      navigator.clipboard.writeText(prompt);
       alert("최적화된 프롬프트가 복사되었어요!");
     }
   };
 
-  // 2. 프롬프트 재생성 기능
+  // 2. 프롬프트 재생성 기능.. 일단 보류
   const handleRetryOptimization = async () => {
     if (!originalPrompt) return;
     setIsLoading(true);
@@ -205,13 +372,34 @@ const PromptOptimize = () => {
     try {
       await new Promise((res) => setTimeout(res, 2000));
       const result = `최적화된 프롬프트 예시입니다 (버전 ${Math.floor(Math.random() * 1000)})`;
-      setPromptText(result); // ✅ promptText에 덮어쓰기
+      setPrompt(result); // ✅ promptText에 덮어쓰기
     } catch (err) {
       console.error(err);
     } finally {
       setIsLoading(false);
     }
   };
+
+  React.useEffect(() => {
+    if (location.state?.reset) {
+      setPrompt("");
+      setIsOptimized(false);
+      setOriginalPrompt("");
+    }
+  }, [location.key]);
+
+  // 📂 폴더 데이터 불러오기
+  React.useEffect(() => {
+    const fetchFolders = async () => {
+      try {
+        const folderData = await getFolders();
+        setFolders(folderData);
+      } catch (error) {
+        console.error("폴더 목록 조회 실패:", error);
+      }
+    };
+    fetchFolders();
+  }, []);
 
 
   return (
@@ -220,61 +408,76 @@ const PromptOptimize = () => {
       <Topbar />
         <PromptOptWrapper>
             <Sidebar />
-            {isLoading ? (
               <MainWrapper>
-                  <MainText>
-                    최적화된 프롬프트를 생성하고 있어요
-                  </MainText>
-                  <SubText>조금만 기다려주세요!</SubText>
-                  <LoadingBar />
-                </MainWrapper>
-            ) : (
-              <MainWrapper>
-                <MainText>프롬프트<Highlight> 최적화</Highlight>하기</MainText>
+                <MainText>
+                  {isOptimized ? <>프롬프트가<Highlight> 최적화</Highlight>되었어요</> : <>프롬프트<Highlight> 최적화</Highlight>하기</>}
+                </MainText>
                 <ContentWrapper>
                     <PromptWrapper>
-                      <PromptInput
-                        placeholder="어떤 프롬프트를 작성해야 좋을까?"
-                        value={promptText}
-                        onChange={(e) => {
-                          if (!isOptimized) setPromptText(e.target.value);
-                        }}
-                        readOnly={isOptimized}
-                      />
                       {isOptimized ? (
-                        <OptimizedBtnGroup>
-                          <IconBtn
-                            src={isBookmarked ? BookmarkFillIcon : BookmarkEmpIcon}
-                            onClick={() => {
-                              if (isBookmarked) {
-                                setIsBookmarked(false);
-                                alert("북마크에서 삭제했습니다.");
-                              } else {
-                                setShowBookmarkModal(true);
-                              }
-                            }}
-                          />
-                          {showBookmarkModal && (
-                            <BookmarkModal
-                              folders={["기본 폴더", "기획", "디자인", "마케팅", "배고파", "개발"]}
-                              onClose={() => setShowBookmarkModal(false)}
-                              onSave={() => {
-                                setIsBookmarked(true);
-                                setShowBookmarkModal(false);
-                              }}
-                              selectedFolder={selectedFolder}
-                              setSelectedFolder={setSelectedFolder}
-                          />
-                          )}
-                          <IconBtn src={RefreshIcon} onClick={handleRetryOptimization}/>
-                          <IconBtn src={CopyIcon} onClick={handleCopy}/>
-                        </OptimizedBtnGroup>
+                        <>
+                          <OptPrompt>
+                            <ScrollArea>
+                              <ReactMarkdown children={prompt} />
+                            </ScrollArea>
+                            <OptimizedBtnGroup>
+                              <IconBtn
+                                src={isBookmarked ? BookmarkFillIcon : BookmarkEmpIcon}
+                                onClick={() => {
+                                  if (isBookmarked) {
+                                    setIsBookmarked(false);
+                                    alert("북마크에서 삭제했습니다.");
+                                  } else {
+                                    setShowBookmarkModal(true);
+                                  }
+                                }}
+                              />
+                              {showBookmarkModal && (
+                                <BookmarkModal
+                                  folders={folders}
+                                  onClose={() => setShowBookmarkModal(false)}
+                                  onSave={() => {
+                                    if (selectedFolder) {
+                                      setIsBookmarked(true);
+                                      setShowBookmarkModal(false);
+                                      alert(`${selectedFolder.name}에 북마크가 저장되었습니다.`);
+                                    }
+                                  }}
+                                  selectedFolder={selectedFolder}
+                                  setSelectedFolder={setSelectedFolder}
+                                />
+                              )}
+                              {/* 기존 북마크 모달..
+                              showBookmarkModal && (
+                                <BookmarkModal
+                                  folders={["기본 폴더", "기획", "디자인", "마케팅", "배고파", "개발"]}
+                                  onClose={() => setShowBookmarkModal(false)}
+                                  onSave={() => {
+                                    setIsBookmarked(true);
+                                    setShowBookmarkModal(false);
+                                  }}
+                                  selectedFolder={selectedFolder}
+                                  setSelectedFolder={setSelectedFolder}
+                                />
+                              )*/}
+                              <IconBtn src={RefreshIcon} onClick={handleRetryOptimization} />
+                              <IconBtn src={CopyIcon} onClick={handleCopy} />
+                            </OptimizedBtnGroup>
+                          </OptPrompt>
+                        </>
                       ) : (
-                        <SendBtn src={CircleArrowBtn} onClick={handleSend} />
+                        <>
+                          <PromptInput
+                            placeholder="어떤 프롬프트를 작성해야 좋을까?"
+                            value={prompt}
+                            onChange={(e) => setPrompt(e.target.value)}
+                          />
+                          <SendBtn src={CircleArrowBtn} onClick={handleSend} />
+                        </>
                       )}
                     </PromptWrapper>
                 </ContentWrapper>
-                {!isOptimized && (
+                {!isOptimized ? (
                 <ExampleWrapper>
                   { /* 예시... 나중에 수정 필요 */ }
                     <ExampleBox onClick={() => handleExampleClick("2025년 인공지능 트렌드를 요약해줘")}>
@@ -287,9 +490,13 @@ const PromptOptimize = () => {
                       💡 빅데이터 분석의 단계 알려줘
                     </ExampleBox>
                 </ExampleWrapper>
+                ):(
+                  <CrossValidationBtn onClick={handleCrossValidation}>
+                    이 프롬프트로 교차검증하기
+                    <ArrowIcon src={ArrowRight} alt="Arrow Right" />
+                  </CrossValidationBtn>
                 )}
               </MainWrapper>
-            )}
           </PromptOptWrapper>
         </Wrapper>
     );

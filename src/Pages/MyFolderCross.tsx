@@ -5,9 +5,7 @@ import FolderSidebar from "../Components/FolderSidebar";
 import Background from "../Icons/BackgroundBasic.png";
 import NewBtn from "../Components/NewBtn";
 import ArrowDown from "../Icons/ArrowDown.svg";
-import ArrowUp from "../Icons/ArrowUp.svg";
-import { useNavigate } from "react-router-dom";
-import { createFolder, getOptimizedPromptList, type OptimizedPrompt } from "../services/folderService";
+import { createFolder, type FolderPrompt, getFolderPrompts, getFolders, type Folder } from "../services/folderService";
 import { usePrompt } from "../Context/PromptContext";
 
 const Wrapper = styled.div`
@@ -174,6 +172,12 @@ const ModalContent = styled.div`
     text-align: center;
 `
 
+const InputWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+`
+
 const SelectWrapper = styled.div`
     display: flex;
     flex-direction: column;
@@ -212,12 +216,6 @@ const Select = styled.select`
     &:hover {
         border-color: #B0B0B0;
     }
-`
-
-const InputWrapper = styled.div`
-    display: flex;
-    flex-direction: column;
-    margin: 0;
 `
 
 const InputText = styled.input`
@@ -300,215 +298,86 @@ const ModalButton = styled.button`
     }
 `
 
-const DropdownMenu = styled.div`
-    background-color: #fff;
-    width: 6rem;
-    border-radius: 10px;
-    position: absolute;
-    margin-top: 3rem;
-    padding: 0 0.5rem;
-`
-
-const DropdownItemFirst = styled.div`
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 0.8rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    z-index: 1001;
-    border-radius: 10px 10px 0 0;
-    border-bottom: 1px solid rgba(73, 73, 73, 0.2);
-    font-size: 14px;
-
-    &:hover {
-        background-color: #f0f0f0;
-    }
-`
-const DropdownItemSecond = styled.div`
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 0.8rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    z-index: 1001;
-    border-radius: 10px;
-    font-size: 14px;
-
-
-    &:hover {
-        background-color: #f0f0f0;
-    }
-`
-
-const PaginationContainer = styled.div`
-    display: flex;
-    justify-content: center;
-    margin-top: 2rem;
-    gap: 0.5rem;
-`;
-
-const PageButton = styled.button<{ $isActive: boolean }>`
-    padding: 0.5rem 1rem;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #495057;
-    background-color: ${props => props.$isActive ? '#3B5AF7' : '#ffffff'};
-    color: ${props => props.$isActive ? '#ffffff' : '#495057'};
-    cursor: pointer;
-    transition: all 0.2s ease;
-
-    &:hover:not(:disabled) {
-        background-color: #e9ecef;
-    }
-
-    &:disabled {
-        color: #ced4da;
-        cursor: not-allowed;
-    }
-`;
-
-const MyFolderPL = () => {
+const MyFolderCross = () => {
     const [showModal, setShowModal] = useState(false);
-    const [showDropdown, setShowDropdown] = useState(false);
     const [newFolderName, setNewFolderName] = useState('');
-    const [selectedFolderType, setSelectedFolderType] = useState<'prompt' | 'crosscheck'>('prompt');
+    const [selectedFolderType, setSelectedFolderType] = useState<'prompt' | 'crosscheck'>('crosscheck');
     const [isCreating, setIsCreating] = useState(false);
-    const [promptList, setPromptList] = useState<OptimizedPrompt[]>([]);
+    const { folderId, setFolderId } = usePrompt();
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const navigate = useNavigate();
-    const { setPromptId, setFolderId } = usePrompt();
-    
-    // 페이지네이션 상태 추가
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5;
-    
-    // 폴더 목록 새로고침 함수 제거 - 더 이상 필요하지 않음
-    
-    const fetchPromptList = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            const data = await getOptimizedPromptList();
-            setPromptList(data);
-        } catch (error) {
-            console.error('프롬프트 목록 조회 실패:', error);
-            setError('프롬프트 목록 조회 실패');
-        } finally {
-            setLoading(false);
-        }
-    }
+    const [crossCheckList, setCrossCheckList] = useState<FolderPrompt[]>([]);
+    const [folders, setFolders] = useState<Folder[]>([]);
+    const [currentFolder, setCurrentFolder] = useState<Folder | null>(null);
 
+    // 폴더 목록 가져오기
     useEffect(() => {
-        fetchPromptList();
-    }, []);
-
-    // 페이지네이션 계산
-    const totalPages = Math.ceil(promptList.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentItems = promptList.slice(startIndex, endIndex);
-
-    // 페이지 변경 핸들러
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
-    };
-
-    // 페이지네이션 컴포넌트
-    const Pagination = () => {
-        if (totalPages <= 1) return null;
-
-        const pages = [];
-        const maxVisiblePages = 5;
-        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-        if (endPage - startPage + 1 < maxVisiblePages) {
-            startPage = Math.max(1, endPage - maxVisiblePages + 1);
-            endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-        }
-
-        for (let i = startPage; i <= endPage; i++) {
-            pages.push(
-                <PageButton
-                    key={i}
-                    onClick={() => handlePageChange(i)}
-                    $isActive={i === currentPage}
-                >
-                    {i}
-                </PageButton>
-            );
-        }
-
-        return (
-            <PaginationContainer>
-                <PageButton
-                    onClick={() => handlePageChange(1)}
-                    disabled={currentPage === 1}
-                    $isActive={false}
-                >
-                    처음
-                </PageButton>
-                <PageButton
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    $isActive={false}
-                >
-                    이전
-                </PageButton>
-                {pages}
-                <PageButton
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    $isActive={false}
-                >
-                    다음
-                </PageButton>
-                <PageButton
-                    onClick={() => handlePageChange(totalPages)}
-                    disabled={currentPage === totalPages}
-                    $isActive={false}
-                >
-                    마지막
-                </PageButton>
-            </PaginationContainer>
-        );
-    };
-
-    useEffect(() => {
-        console.log("showDropdown: ", showDropdown);
-    }, [showDropdown]);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            const target = event.target as Element;
-            if (showDropdown && !target.closest('.dropdown-container')) {
-                setShowDropdown(false);
+        const fetchFolders = async () => {
+            try {
+                const folderData = await getFolders('crosscheck');
+                setFolders(folderData);
+            } catch (error) {
+                console.error('폴더 목록 조회 실패:', error);
             }
         };
+        
+        fetchFolders();
+    }, []);
 
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
+    // 현재 선택된 폴더 정보 가져오기
+    useEffect(() => {
+        if (folderId && folders.length > 0) {
+            const folder = folders.find(f => f.id === folderId);
+            setCurrentFolder(folder || null);
+        }
+    }, [folderId, folders]);
+
+    // 폴더 내 프롬프트 목록 조회
+    useEffect(() => {
+        const fetchFolderPrompts = async () => {
+            if (!folderId) {
+                console.log('folderId가 없습니다.');
+                return;
+            }
+            
+            try {
+                setLoading(true);
+                setError(null);
+                const data = await getFolderPrompts(folderId, 'crosscheck');
+                setCrossCheckList(data);
+                console.log('폴더 내 프롬프트 목록:', data);
+            } catch (err) {
+                console.error('폴더 내 프롬프트 목록 조회 실패:', err);
+                setError('폴더 내 프롬프트 목록을 불러올 수 없습니다.');
+            } finally {
+                setLoading(false);
+            }
         };
-    }, [showDropdown]);
-
-    const handleDropdown = () => {
-        console.log("클릭됨: ", showDropdown);
-        setShowDropdown(prev => {
-            console.log("이전값 ", prev, "현재값 ", !prev);
-            return !prev;
-        })
-    }
+        
+        fetchFolderPrompts();
+    }, [folderId]);
 
     const handleNewFolder = () => {
         setShowModal(true);
         console.log("showModal: ", showModal);
     }
+
+    const handleModalCancel = () => {
+        setShowModal(false);
+        setNewFolderName('');
+    }
+
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
 
     const handleModalConfirm = async () => {
         if (!newFolderName.trim()) {
@@ -519,7 +388,6 @@ const MyFolderPL = () => {
         try {
             setIsCreating(true);
             const response = await createFolder(newFolderName.trim(), selectedFolderType);
-
             console.log('폴더 생성 성공:', response);
             
             // 폴더 생성 성공 시 받은 folderId를 Context에 저장
@@ -543,25 +411,10 @@ const MyFolderPL = () => {
         }
     };
 
-    const handleModalCancel = () => {
-        setShowModal(false);
-        setNewFolderName('');
-    };
-
-    const handleItemClick = (promptId: number) => {
-        // 프롬프트 아이템 클릭 시 Context에 promptId 저장
-        setPromptId(promptId);
-        console.log('선택된 프롬프트 ID:', promptId);
-        navigate(`/promptdetail/${promptId}`);
-    };
-
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('ko-KR', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
+    const handleItemClick = (crossCheckId: number) => {
+        // 교차검증 아이템 클릭 시 처리 로직
+        console.log('선택된 교차검증 ID:', crossCheckId);
+        // navigate(`/crosscheck/${crossCheckId}`);
     };
 
     return (
@@ -572,31 +425,22 @@ const MyFolderPL = () => {
                 <MainWrapper>
                     <CenterWrapper>
                         <TopWrapper>
-                            <MainText>모든 프롬프트</MainText>
+                            <MainText>
+                                {currentFolder ? currentFolder.name : '폴더를 선택해주세요'}
+                            </MainText>
                             <NewBtn onClick={handleNewFolder}>+&nbsp;&nbsp;&nbsp;새 폴더</NewBtn>
                         </TopWrapper>
                         <PromptList>
                             <ListHeader>
-                                <HeaderItem onClick={() => {handleDropdown()}} style={{ cursor: 'pointer' }}>
-                                    프롬프트
+                                <HeaderItem>
+                                    AI 교차검증
                                     <SortIcon><img src={ArrowDown} alt="" /></SortIcon>
                                 </HeaderItem>
                                 <HeaderItem>
                                     생성일자
                                 </HeaderItem>
                             </ListHeader>
-                            {showDropdown && (
-                                <DropdownMenu className="dropdown-container">
-                                    <DropdownItemFirst onClick={() => {handleDropdown()}}>
-                                        프롬프트
-                                        <SortIcon><img src={ArrowUp} alt="" /></SortIcon>
-                                    </DropdownItemFirst>
-                                    <DropdownItemSecond onClick={() => {navigate('/myfoldercl')}}>
-                                        AI 교차검증
-                                    </DropdownItemSecond>
-                                </DropdownMenu>
-                            )}
-
+                            
                             {loading ? (
                                 <div style={{ color: '#fff', textAlign: 'center', padding: '2rem' }}>
                                     로딩 중...
@@ -605,27 +449,28 @@ const MyFolderPL = () => {
                                 <div style={{ color: '#ff6b6b', textAlign: 'center', padding: '2rem' }}>
                                     {error}
                                 </div>
-                            ) : promptList.length === 0 ? (
+                            ) : !folderId ? (
                                 <div style={{ color: '#EFEFEF', textAlign: 'center', padding: '2rem' }}>
-                                    프롬프트 데이터가 없습니다.
+                                    폴더를 선택해주세요.
+                                </div>
+                            ) : crossCheckList.length === 0 ? (
+                                <div style={{ color: '#EFEFEF', textAlign: 'center', padding: '2rem' }}>
+                                    선택된 폴더에 프롬프트가 없습니다.
                                 </div>
                             ) : (
-                                <>
-                                    {currentItems.map((prompt) => (
-                                        <PromptItem 
-                                            key={prompt.id} 
-                                            onClick={() => handleItemClick(prompt.id)}
-                                            style={{ cursor: 'pointer' }}
-                                        >
-                                            <PromptTitle>{prompt.summary}</PromptTitle>
-                                            <PromptDate>{formatDate(prompt.createdAt)}</PromptDate>
-                                        </PromptItem>
-                                    ))}
-                                    <Pagination />
-                                </>
+                                crossCheckList.map((crossCheck) => (
+                                    <PromptItem 
+                                        key={crossCheck.id} 
+                                        onClick={() => handleItemClick(crossCheck.id)}
+                                        style={{ cursor: 'pointer' }}
+                                    >
+                                        <PromptTitle>{crossCheck.summary}</PromptTitle>
+                                        <PromptDate>{formatDate(crossCheck.createdAt)}</PromptDate>
+                                    </PromptItem>
+                                ))
                             )}
-                            
                         </PromptList>
+
                     </CenterWrapper>
                 </MainWrapper>
             </CrossCheckWrapper>
@@ -652,7 +497,7 @@ const MyFolderPL = () => {
                         <InputWrapper>
                             <InputLabel>폴더명</InputLabel>
                             <InputText 
-                                width="80%" 
+                                width="80%"
                                 placeholder="입력해주세요." 
                                 value={newFolderName}
                                 onChange={(e) => setNewFolderName(e.target.value)}
@@ -674,4 +519,4 @@ const MyFolderPL = () => {
     );
 }
 
-export default MyFolderPL;
+export default MyFolderCross;

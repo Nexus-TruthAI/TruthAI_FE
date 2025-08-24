@@ -9,6 +9,8 @@ import BookmarkFillIcon from "../Icons/BookmarkFill.png";
 import CopyIcon from "../Icons/Copy.svg";
 import Questionmark from "../Icons/QuestionMark.png";
 import BookmarkModal from "../Components/BookmarkModal";
+import { getFolders, type Folder, getPromptDetail, type PromptDetail } from "../services/folderService";
+import { usePrompt } from "../Context/PromptContext";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -329,49 +331,84 @@ const MyFolderPD = () => {
     const [showTooltip, setShowTooltip] = useState(false);
     const [showBookmarkModal, setShowBookmarkModal] = useState(false);
     const [bookmarkType, setBookmarkType] = useState<'prompt' | 'modifiedPrompt' | null>(null);
-    const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+    const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
+    const [folders, setFolders] = useState<Folder[]>([]);
+    const [refreshKey, setRefreshKey] = useState(0);
+    const [promptDetail, setPromptDetail] = useState<PromptDetail | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const { id } = useParams<{ id: string }>();
+    const { promptId } = usePrompt();
     
-    // 임시 폴더 데이터 (백엔드에서 받아올 예정)
-    const tempFolders = [
-        "프롬프트 폴더 1",
-        "AI 교차검증 폴더",
-        "개인 프로젝트",
-        "학습 자료",
-        "아이디어 저장소"
-    ];
+    // 프롬프트 상세 정보 가져오기
+    useEffect(() => {
+        const fetchPromptDetail = async () => {
+            if (!promptId) {
+                console.log('promptId가 없습니다.');
+                return;
+            }
+            
+            try {
+                setLoading(true);
+                setError(null);
+                const data = await getPromptDetail(promptId);
+                setPromptDetail(data);
+                console.log('프롬프트 상세 정보:', data);
+            } catch (err) {
+                console.error('프롬프트 상세 정보 조회 실패:', err);
+                setError('프롬프트 상세 정보를 불러올 수 없습니다.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        fetchPromptDetail();
+    }, [promptId]);
     
-    // 임시 데이터 (백엔드에서 받아올 예정)
-    const tempData = {
-        1: {
-            title: "인공지능 트렌드 요약",
-            modifiedPrompt: "최신 인공지능 기술 동향과 트렌드를 분석하여 요약해주세요. 특히 2024년에 주목받는 AI 기술과 향후 전망에 대해 자세히 설명해주세요.",
-            originalPrompt: "AI 트렌드 요약해줘"
-        },
-        2: {
-            title: "빅데이터 분석 단계 설명",
-            modifiedPrompt: "빅데이터 분석의 전체 과정을 단계별로 상세히 설명해주세요. 데이터 수집부터 시각화까지 각 단계에서 필요한 도구와 방법론을 포함하여 설명해주세요.",
-            originalPrompt: "빅데이터 분석 과정 설명해줘"
-        },
-        3: {
-            title: "머신러닝과 딥러닝 설명 및 차이점",
-            modifiedPrompt: "머신러닝과 딥러닝의 개념, 작동 원리, 그리고 두 기술의 차이점을 구체적인 예시와 함께 설명해주세요. 각각의 장단점과 활용 분야도 포함해주세요.",
-            originalPrompt: "머신러닝 딥러닝 차이점 알려줘"
-        },
-        4: {
-            title: "자연어 처리 기술 동향",
-            modifiedPrompt: "최신 자연어 처리(NLP) 기술의 발전 동향과 주요 모델들을 분석해주세요. GPT, BERT 등의 대형 언어 모델의 특징과 활용 사례를 포함하여 설명해주세요.",
-            originalPrompt: "NLP 기술 동향 알려줘"
-        },
-        5: {
-            title: "AI 윤리와 책임성",
-            modifiedPrompt: "인공지능 기술의 윤리적 문제와 책임성에 대해 깊이 있게 분석해주세요. 편향성, 투명성, 개인정보 보호 등의 이슈와 해결 방안을 제시해주세요.",
-            originalPrompt: "AI 윤리 문제점 설명해줘"
-        }
+    // 폴더 목록 새로고침 함수
+    const refreshFolderSidebar = () => {
+        setRefreshKey(prev => prev + 1);
     };
     
-    // 현재 ID에 해당하는 데이터 가져오기
-    const currentData = tempData[Number(id) as keyof typeof tempData];
+    // 폴더 데이터 가져오기
+    useEffect(() => {
+        const fetchFolders = async () => {
+            try {
+                const folderData = await getFolders();
+                setFolders(folderData);
+            } catch (error) {
+                console.error('폴더 목록 조회 실패:', error);
+            }
+        };
+        
+        fetchFolders();
+    }, [refreshKey]);
+    
+    
+    // optimizedPrompt에서 ```prompt와 끝의 ``` 제거하는 함수
+    const parseOptimizedPrompt = (prompt: string) => {
+        // ```prompt로 시작하는 경우 제거
+        let parsed = prompt;
+        if (prompt.startsWith('```prompt')) {
+            parsed = prompt.substring(9); // ```prompt (9글자) 제거
+        } else if (prompt.startsWith('```')) {
+            parsed = prompt.substring(3); // ``` (3글자) 제거
+        }
+        
+        // 끝에 ```가 있는 경우 제거
+        if (parsed.endsWith('```')) {
+            parsed = parsed.substring(0, parsed.length - 3);
+        }
+        
+        return parsed.trim();
+    };
+
+    // 현재 ID에 해당하는 데이터 가져오기 - 이제 API에서 받아온 데이터 사용
+    const currentData = promptDetail ? {
+        title: promptDetail.summary,
+        modifiedPrompt: parseOptimizedPrompt(promptDetail.optimizedPrompt),
+        name: promptDetail.originalPrompt
+    } : null;
     
     useEffect(() => {
         console.log("showDropdown: ", showDropdown);
@@ -383,16 +420,13 @@ const MyFolderPD = () => {
             if (showDropdown && !target.closest('.dropdown-container')) {
                 setShowDropdown(false);
             }
-            if (showTooltip && !target.closest('.tooltip-container')) {
-                setShowTooltip(false);
-            }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [showDropdown, showTooltip]);
+    }, [showDropdown]);
 
     const handleModalCancel = () => {
         setShowModal(false);
@@ -424,29 +458,13 @@ const MyFolderPD = () => {
         setShowBookmarkModal(true);
     };
 
-    const handleQuestionmarkClick = () => {
-        setShowTooltip(prev => !prev);
+    const handleQuestionmarkMouseEnter = () => {
+        setShowTooltip(true);
     }
 
-    const handleBookmarkSave = () => {
-        if (selectedFolder) {
-            // 북마크 상태 업데이트
-            if (bookmarkType === 'prompt') {
-                setIsPromptBookmarked(true);
-            } else if (bookmarkType === 'modifiedPrompt') {
-                setIsModifiedPromptBookmarked(true);
-            }
-            setShowBookmarkModal(false);
-            setSelectedFolder(null);
-            alert(`${selectedFolder}에 북마크가 저장되었습니다.`);
-        }
-    };
-
-    const handleBookmarkModalClose = () => {
-        setShowBookmarkModal(false);
-        setSelectedFolder(null);
-        setBookmarkType(null);
-    };
+    const handleQuestionmarkMouseLeave = () => {
+        setShowTooltip(false);
+    }
 
     // ID가 유효하지 않거나 데이터가 없는 경우
     if (!id || !currentData) {
@@ -457,7 +475,15 @@ const MyFolderPD = () => {
                     <FolderSidebar />
                     <MainWrapper>
                         <CenterWrapper>
-                            <MainText>프롬프트를 찾을 수 없습니다</MainText>
+                            {loading ? (
+                                <MainText>프롬프트 정보를 불러오는 중...</MainText>
+                            ) : error ? (
+                                <MainText style={{ color: '#ff6b6b' }}>{error}</MainText>
+                            ) : !promptId ? (
+                                <MainText>프롬프트 ID가 없습니다</MainText>
+                            ) : (
+                                <MainText>프롬프트를 찾을 수 없습니다</MainText>
+                            )}
                         </CenterWrapper>
                     </MainWrapper>
                 </CrossCheckWrapper>
@@ -480,9 +506,6 @@ const MyFolderPD = () => {
                                         {currentData.modifiedPrompt}
                                     </ContentText>
                                         <IconContainer>
-                                            <IconButton onClick={() => handleBookmarkClick('modifiedPrompt')}>
-                                                <img src={isModifiedPromptBookmarked ? BookmarkFillIcon : BookmarkIcon} alt="Bookmark" className="bookmark" />
-                                            </IconButton>
                                             <IconButton onClick={() => handleCopyClick(currentData.modifiedPrompt)}>
                                                 <img src={CopyIcon} alt="Copy" className="copy" />
                                             </IconButton>
@@ -493,7 +516,10 @@ const MyFolderPD = () => {
                                 <TitleWrapper>
                                     <Title>내가 입력한 프롬프트</Title>
                                     <TooltipContainer className="tooltip-container">
-                                        <IconButton onClick={() => handleQuestionmarkClick()}>
+                                        <IconButton 
+                                            onMouseEnter={handleQuestionmarkMouseEnter}
+                                            onMouseLeave={handleQuestionmarkMouseLeave}
+                                        >
                                             <img src={Questionmark} alt="questionmark" className="questionmark" />
                                         </IconButton>
                                         {showTooltip && (
@@ -505,13 +531,10 @@ const MyFolderPD = () => {
                                 </TitleWrapper>
                                 <ContentArea>
                                     <ContentText>
-                                        {currentData.originalPrompt}
+                                        {currentData.name}
                                     </ContentText>
                                         <IconContainer>
-                                            <IconButton onClick={() => handleBookmarkClick('prompt')}>
-                                                <img src={isPromptBookmarked ? BookmarkFillIcon : BookmarkIcon} alt="Bookmark" className="bookmark" />
-                                            </IconButton>
-                                            <IconButton onClick={() => handleCopyClick(currentData.originalPrompt)}>
+                                            <IconButton onClick={() => handleCopyClick(currentData.name)}>
                                                 <img src={CopyIcon} alt="Copy" className="copy" />
                                             </IconButton>
                                         </IconContainer>
@@ -544,15 +567,6 @@ const MyFolderPD = () => {
                         </ModalButtons>
                     </Modal>
                 </ModalOverlay>
-            )}
-            {showBookmarkModal && bookmarkType && (
-                <BookmarkModal
-                    folders={tempFolders}
-                    onClose={handleBookmarkModalClose}
-                    onSave={handleBookmarkSave}
-                    selectedFolder={selectedFolder}
-                    setSelectedFolder={setSelectedFolder}
-                />
             )}
         </Wrapper>
     );
