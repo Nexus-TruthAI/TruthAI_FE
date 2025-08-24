@@ -31,7 +31,7 @@ const OAuthCallback = () => {
         // 인가 코드 POST로 요청
         const res = await api.post('/auth/login', {
           token: code,
-          redirectUri: 'http://localhost:5173/oauth/callback', // 필요하면
+          redirectUri: import.meta.env.VITE_REDIRECT_URI,
         }, {
           headers: {
             'Content-Type': 'application/json',
