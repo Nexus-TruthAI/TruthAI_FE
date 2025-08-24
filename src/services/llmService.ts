@@ -15,12 +15,20 @@ export interface LLMAPIResponse {
 
 import axios from 'axios';
 
-// API base URL 설정
+// API 설정 (프록시 사용)
 const api = axios.create({
-  baseURL: 'https://api.truthai.shop',
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+// 요청 인터셉터: 액세스 토큰 자동 첨부
+api.interceptors.request.use(config => {
+  const token = sessionStorage.getItem("accessToken");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export const getLLMAnswers = async (request: LLMRequest): Promise<LLMAPIResponse> => {
@@ -37,7 +45,7 @@ export const getLLMAnswers = async (request: LLMRequest): Promise<LLMAPIResponse
     console.log('📋 요청 데이터:', JSON.stringify(request, null, 2));
     console.log('🔧 요청 헤더:', {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${accessToken}`, // TODO: 인증 로직 완성 후 주석 해제
+      'Authorization': `Bearer ${accessToken}`,
     });
 
     // 요청 데이터 유효성 검사
@@ -60,8 +68,6 @@ export const getLLMAnswers = async (request: LLMRequest): Promise<LLMAPIResponse
     const response = await api.post('/llm-answer/models', request, {
       headers: {
         'Content-Type': 'application/json',
-        // Postman과 동일하게 최소한의 헤더만 전송
-        'Authorization': `Bearer ${accessToken}`, // TODO: 인증 로직 완성 후 주석 해제
       },
       timeout: 30000, // 30초 타임아웃 설정
       // CORS 관련 설정 추가
