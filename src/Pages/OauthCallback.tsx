@@ -60,7 +60,7 @@ const OAuthCallback = () => {
             }
           }
 
-          navigate("/FeatChoice");
+          navigate("/mainpage");
         } else {
           console.warn("토큰 없음", res.data);
         }

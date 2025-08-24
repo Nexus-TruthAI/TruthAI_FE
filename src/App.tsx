@@ -2,9 +2,23 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./Pages/GoogleLogin";
 import FeatChoicePage from "./Pages/FeatChoice";
 import OAuthCallbackPage from "./Pages/OauthCallback";
+import CrossCheckQ from "./Pages/CrossCheckQ";
+import CrossCheckL from "./Pages/CrossCheckL";
+import CrossCheckA from "./Pages/CrossCheckA";
+import PromptOptimize from "./Pages/PromptOptimize";
+import PromptOptimizeDetails from "./Pages/PromptOptimizeDetails";
+import FactCheck from "./Pages/FactCheck";
+import Question from "./Pages/Question";
+import MyPage from "./Pages/MyPage";
+import MainPage from "./Pages/MainPage";
+import MyFolderPL from "./Pages/MyFolderPL";
+import MyFolderCL from "./Pages/MyFolderCL";
+import MyFolderPD from "./Pages/MyFolderPD";
+import MyFolderCross from "./Pages/MyFolderCross";
+import MyFolderPrompt from "./Pages/MyFolderPrompt";
 
 // 로그인 여부 확인 예시
-const isLoggedIn = () => !!localStorage.getItem("accessToken");
+const isLoggedIn = () => !!sessionStorage.getItem("accessToken");
 console.log(isLoggedIn());
 
 function App() {
@@ -32,7 +46,7 @@ function App() {
 
         {/* 기능 선택 페이지 (로그인 필요) */}
         <Route
-          path="/feat-choice"
+          path="/featchoice"
           element={
             isLoggedIn() ? <FeatChoicePage /> : <Navigate to="/login" />
           }
@@ -45,6 +59,119 @@ function App() {
             <OAuthCallbackPage />
           }
         />
+
+        <Route
+          path="/crosscheckl"
+          element={
+            isLoggedIn() ? <CrossCheckL /> : <Navigate to="/login" />
+          }
+        />
+
+        <Route
+          path="/crosscheckq"
+          element={
+            isLoggedIn() ? <CrossCheckQ /> : <Navigate to="/login" />
+          }
+        />        
+        
+        <Route
+          path="/crosschecka"
+          element={
+            isLoggedIn() ? <CrossCheckA /> : <Navigate to="/login" />
+          }
+        />
+        
+        <Route
+          path="/crosschecka/:answerId"
+          element={
+            isLoggedIn() ? <CrossCheckA /> : <Navigate to="/login" />
+          }
+        />
+
+        <Route
+          path="/promptoptdetail"
+          element={
+            isLoggedIn() ? <PromptOptimizeDetails /> : <Navigate to="/login" />
+          }
+        />
+
+        <Route
+          path="/promptopt"
+          element={
+            isLoggedIn() ? <PromptOptimize /> : <Navigate to="/login" />
+          }
+        />
+
+        <Route
+          path="/promptopt/:id" 
+          element={
+            isLoggedIn() ? <PromptOptimize /> : <Navigate to="/login" />
+          }
+        />
+
+        <Route
+          path="/question"
+          element={
+            isLoggedIn() ? <Question /> : <Navigate to="/login" />
+          }
+        />
+
+        <Route
+          path="/factcheck"
+          element={
+            isLoggedIn() ? <FactCheck /> : <Navigate to="/login" />
+          }
+        />
+
+        <Route
+          path="/mypage"
+          element={
+            isLoggedIn() ? <MyPage /> : <Navigate to="/login" />
+          }
+        />
+
+        <Route
+          path="/mainpage"
+          element={
+            isLoggedIn() ? <MainPage /> : <Navigate to="/login" />
+          }
+        />
+
+        <Route
+          path="/myfolderpl"
+          element={
+            isLoggedIn() ? <MyFolderPL /> : <Navigate to="/login" />
+          }
+        />
+
+        <Route
+          path="/myfoldercl"
+          element={
+            isLoggedIn() ? <MyFolderCL /> : <Navigate to="/login" />
+          }
+        />
+
+        <Route
+          path="/promptdetail/:id"
+          element={
+            isLoggedIn() ? <MyFolderPD /> : <Navigate to="/login" />
+          }
+        />
+
+        <Route
+          path="/myfoldercross/:id"
+          element={
+            isLoggedIn() ? <MyFolderCross /> : <Navigate to="/login" />
+          }
+        />
+
+        <Route
+          path="/myfolderprompt/:id"
+          element={
+            isLoggedIn() ? <MyFolderPrompt /> : <Navigate to="/login" />
+          }
+        />
+
       </Routes>
   );
 }
