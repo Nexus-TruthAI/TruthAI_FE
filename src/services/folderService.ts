@@ -174,10 +174,10 @@ export const getPromptDetail = async (promptId: number): Promise<PromptDetail> =
 };
 
 // 폴더 내 프롬프트 목록 조회
-export const getFolderPrompts = async (folderId: number, type: 'prompt' | 'crosscheck'): Promise<FolderPrompt[]> => {
+export const getFolderPrompts = async (folderId: number): Promise<FolderPrompt[]> => {
   try {
     console.log('폴더 내 프롬프트 목록 조회 API 요청 시작');
-    const response = await api.get(`/folder/${folderId}/${type}`);
+    const response = await api.get(`/folder/${folderId}`);
     console.log('성공:', response.data);
     if (Array.isArray(response.data)) {
       return response.data;
