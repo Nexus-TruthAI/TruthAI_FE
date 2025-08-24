@@ -3,7 +3,7 @@ import axios from "axios";
 
 // Axios 인스턴스 생성
 const api = axios.create({
-  baseURL: "/", // 필요에 맞게 변경
+  baseURL: import.meta.env.VITE_API_BASE_URL,
 });
 
 // 요청 인터셉터: 액세스 토큰 자동 첨부
@@ -25,7 +25,7 @@ api.interceptors.response.use(
       }
 
       try {
-        const refreshRes = await axios.post("/auth/refresh", { token: refreshToken });
+        const refreshRes = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/token/refresh`, { token: refreshToken });
         const newAccessToken = refreshRes.data.accessToken;
 
         // 새 액세스 토큰 저장

@@ -101,6 +101,32 @@ const Sidebar = () => {
         fetchSidebarPrompts();
     }, [setPromptList]);
 
+    // 상세 조회 후 페이지 이동
+    const handlePromptClick = async (promptId: number) => {
+        try {
+        const res = await api.get("/prompt/side-bar/details", {
+            params: { promptId },
+        });
+
+        const detail = res.data; 
+        // detail: { promptId, originalPrompt, optimizedPrompt, summary, answerDto }
+
+        setPromptId(promptId);
+
+        navigate(`/promptopt/${promptId}`, {
+            state: {
+            originalPrompt: detail.originalPrompt,
+            optimizedPrompt: detail.optimizedPrompt,
+            isOptimized: !!detail.optimizedPrompt,
+            answerDto: detail.answerDto,
+            },
+        });
+        } catch (err) {
+        console.error("프롬프트 상세 조회 실패", err);
+        }
+    };
+
+
     return (
         <Wrapper>
             <PromptWrapper>
@@ -110,10 +136,7 @@ const Sidebar = () => {
                         {promptList.map((item) => (
                             <PromptItem
                                 key={item.promptId}
-                                onClick={() => {
-                                    setPromptId(item.promptId);
-                                    navigate(`/promptopt/${item.promptId}`);
-                                }}
+                                onClick={() => handlePromptClick(item.promptId)}
                             >
                                 {item.summary}
                             </PromptItem>
