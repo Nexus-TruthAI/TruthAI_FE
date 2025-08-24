@@ -50,14 +50,6 @@ const MainText = styled.div`
     font-size: 54px;
     font-weight: 800;
 `
-const SubText = styled.div`
-    color: #fff;
-    font-size: 20px;
-    font-weight: 600;
-    margin-top: 1.1rem;
-    margin-bottom: 3.7rem;
-    text-align: center;
-`
 const Highlight = styled.span`
     color: #C2CCFD;
 `
@@ -233,7 +225,7 @@ const PromptOptimize = () => {
   const [prompt, setPrompt] = useState("");
   // 일단 로케이션에서 가져오는걸로 const [isOptimized, setIsOptimized] = useState(false);
   const [originalPrompt, setOriginalPrompt] = useState(""); 
-  const [isLoading, setIsLoading] = useState(false);
+  const [_isLoading, setIsLoading] = useState(false);
 
   // 북마크 관련 상태
   const [showBookmarkModal, setShowBookmarkModal] = useState(false);

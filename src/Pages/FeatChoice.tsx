@@ -1,4 +1,3 @@
-import React from "react";
 import styled from "styled-components";
 import RoundArrowBtn from "../Components/RoundArrowBtn";
 import Topbar from "../Components/Topbar";

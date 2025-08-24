@@ -246,26 +246,7 @@ const ScoreEmpty = styled.div`
     align-items: center;
     color: #FFFFFF; // ScoreDisplay와 글자 색 동일
 `;
-const ContentArea = styled.div`
-    display: flex;
-    width: 44rem;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 2rem;
-    height: auto;
-    max-height: 50rem;
-    margin-bottom: 2rem;
-    overflow: auto;
-    position: relative;
-`
-const ContentText = styled.div`
-    color: #fff;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1.6;
-    white-space: pre-line;
-    padding-bottom: 3rem;
-`
+
 
 interface Reference {
   title: string;
@@ -293,7 +274,7 @@ type AIKey = "gpt" | "claude" | "gemini" | "perplexity";
 
 const FactCheck = () => {
   const location = useLocation();
-  const { promptId, setPromptId } = usePrompt();
+  const { promptId} = usePrompt();
 
   // 공통주장 상태 (백엔드에서 받아올 것)
   const [coreTitle, setCoreTitle] = useState("");

@@ -80,13 +80,12 @@ const Sidebar = () => {
     //const [prompts, setPrompts] = useState<{promptId: number, summary: string}[]>([]);
     const { setPromptId } = usePrompt();
     const [promptList, setPromptList] = useState<{promptId: number, summary: string}[]>([]);
-    const [crossCheckList, setCrossCheckList] = useState<{promptId: number, summary: string}[]>([]);
+    //const [crossCheckList, setCrossCheckList] = useState<{promptId: number, summary: string}[]>([]);
 
-    //const prompts = Array(5).fill("최근 보고서 요약 요청").map((text, i) => `${text} ${i + 1}`);
 
     // Todo:
-    // 현재 api 자체는 잘 되는데 프롬프트 생성받으면 자동으로 처리되고 있는건지가 불분명
-    // 프롬프트와 교차검증이 따로 오는지도 불분명
+    // 프롬프트 리스트 조회에서 교차검증은 빠지고 있는지 체크
+    // 교차검증 리스트 조회 연동 필요
 
     React.useEffect(() => {
         const fetchSidebarPrompts = async () => {
