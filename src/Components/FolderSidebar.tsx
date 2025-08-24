@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { getFolders, type Folder } from "../services/folderService";
+import { usePrompt } from "../Context/PromptContext";
 
 const Wrapper = styled.div`
     margin: 0 2rem 2rem 2rem;
@@ -17,23 +18,26 @@ const Wrapper = styled.div`
 const PromptWrapper = styled.div`
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 50%;
     width: 90%;
+    border-bottom: solid 1px rgba(255, 255, 255, 0.1);
+
 `;
 
 const TitleText = styled.div`
     color: #C2CCFD;
     font-size: 14px;
     font-weight: 500;
-    margin: 2rem 0;
+    margin: 1.5rem 0 0.5rem 0;
     text-align: left;
+    cursor: pointer;
 `;
 
 const SubTitleText = styled.div`
     color: #fff;
     font-size: 12px;
     font-weight: 500;
-    margin: 1rem 0 2rem 0;
+    margin: 1rem 0 1rem 0;
     text-align: left;
 `;
 
@@ -54,7 +58,6 @@ const PromptList = styled.div`
 const PromptItem = styled.div`
     color: #fff;
     font-size: 14px;
-    margin-bottom: 1rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -81,70 +84,79 @@ const LoadingText = styled.div`
 
 const ErrorText = styled.div`
     color: #ff6b6b;
-    font-size: 12px;
+    font-size: 15px;
     font-style: italic;
     padding: 0.5rem;
 `;
 
 const EmptyText = styled.div`
     color: rgba(255, 255, 255, 0.4);
-    font-size: 12px;
+    font-size: 15px;
     font-style: italic;
     padding: 0.5rem;
     text-align: center;
 `;
 
-interface FolderSidebarProps {
-    onRefresh?: () => void; // 새로고침 콜백 함수
-}
+const CrossChecktWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+    height: 50%;
+    width: 90%;
+`;
 
-const FolderSidebar = ({ onRefresh }: FolderSidebarProps) => {
-    const [folders, setFolders] = useState<Folder[]>([]);
+const FolderSidebar = () => {
+    const [promptFolders, setPromptFolders] = useState<Folder[]>([]);
+    const [crosscheckFolders, setCrosscheckFolders] = useState<Folder[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
+    const { setFolderId } = usePrompt();
 
     const fetchFolders = async () => {
         try {
             setLoading(true);
             setError(null);
-            const folderData = await getFolders();
-            if (Array.isArray(folderData)) {
-                setFolders(folderData);
-            } else {
-                console.error('API 응답이 배열이 아닙니다:', folderData);
-                setError('폴더 데이터 형식이 올바르지 않습니다.');
-                setFolders([]);
-            }
+            
+            // Fetch both types of folders
+            const [promptData, crosscheckData] = await Promise.all([
+                getFolders('prompt'),
+                getFolders('crosscheck')
+            ]);
+            
+            setPromptFolders(promptData);
+            setCrosscheckFolders(crosscheckData);
         } catch (err) {
             console.error('폴더 목록 조회 실패:', err);
             setError('폴더 목록을 불러올 수 없습니다.');
-            setFolders([]);
+            setPromptFolders([]);
+            setCrosscheckFolders([]);
         } finally {
             setLoading(false);
         }
     };
 
-    // 외부에서 새로고침 요청이 오면 실행
-    useEffect(() => {
-        if (onRefresh) {
-            fetchFolders();
-        }
-    }, [onRefresh]);
-
-    // 초기 로딩
+    // 초기 로딩만 한 번 실행
     useEffect(() => {
         fetchFolders();
     }, []);
 
-    const handleFolderClick = (folderId: number) => {
-        navigate(`/myfolder/${folderId}`);
+    const handleCrossFolderClick = (folderId: number) => {
+        // 폴더 클릭 시 Context에 folderId 저장
+        setFolderId(folderId);
+        console.log('선택된 폴더 ID:', folderId);
+        navigate(`/myfoldercross/${folderId}`);
+    };
+
+    const handlePromptFolderClick = (folderId: number) => {
+        setFolderId(folderId);
+        console.log('선택된 폴더 ID:', folderId);
+        navigate(`/myfolderprompt/${folderId}`);
     };
 
     return (
         <Wrapper>
             <PromptWrapper>
-                <TitleText>모든 프롬프트</TitleText>
+                <TitleText onClick={() => navigate('/myfolderpl')}>모든 프롬프트</TitleText>
                 <SubTitleText>내 폴더</SubTitleText>
                 <PromptListContainer>
                     <PromptList>
@@ -152,13 +164,13 @@ const FolderSidebar = ({ onRefresh }: FolderSidebarProps) => {
                             <LoadingText>폴더 목록을 불러오는 중...</LoadingText>
                         ) : error ? (
                             <ErrorText>{error}</ErrorText>
-                        ) : folders.length === 0 ? (
+                        ) : promptFolders.length === 0 ? (
                             <EmptyText>폴더가 없습니다.</EmptyText>
                         ) : (
-                            folders.map((folder) => (
+                            promptFolders.map((folder) => (
                                 <PromptItem
                                     key={folder.id}
-                                    onClick={() => handleFolderClick(folder.id)}
+                                    onClick={() => handlePromptFolderClick(folder.id)}
                                     title={`${folder.name} (${new Date(folder.createdAt).toLocaleDateString()})`}
                                 >
                                     {folder.name}
@@ -168,6 +180,31 @@ const FolderSidebar = ({ onRefresh }: FolderSidebarProps) => {
                     </PromptList>
                 </PromptListContainer>
             </PromptWrapper>
+            <CrossChecktWrapper>
+                <TitleText onClick={() => navigate('/myfoldercl')}>모든 교차검증</TitleText>
+                <SubTitleText>내 폴더</SubTitleText>
+                <PromptListContainer>
+                    <PromptList>
+                    {loading ? (
+                            <LoadingText>폴더 목록을 불러오는 중...</LoadingText>
+                        ) : error ? (
+                            <ErrorText>{error}</ErrorText>
+                        ) : crosscheckFolders.length === 0 ? (
+                            <EmptyText>폴더가 없습니다.</EmptyText>
+                        ) : (
+                            crosscheckFolders.map((folder) => (
+                                <PromptItem
+                                    key={folder.id}
+                                    onClick={() => handleCrossFolderClick(folder.id)}
+                                    title={`${folder.name} (${new Date(folder.createdAt).toLocaleDateString()})`}
+                                >
+                                    {folder.name}
+                                </PromptItem>
+                            ))
+                        )}
+                    </PromptList>
+                </PromptListContainer>
+            </CrossChecktWrapper>
         </Wrapper>
     );
 };

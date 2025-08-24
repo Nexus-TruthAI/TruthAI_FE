@@ -7,10 +7,10 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import CopyIcon from "../Icons/Copy.svg";
 import BookmarkIcon from "../Icons/BookmarkEmpty.png";
 import BookmarkFillIcon from "../Icons/BookmarkFill.png";
-import BookmarkModal from "../Components/BookmarkModal";
+import BookmarkModal from "../Components/BookmarkModalCrossCheck";
 import type { LLMResponse } from "../services/llmService";
 import { usePrompt } from "../Context/PromptContext";
-import { getFolders, type Folder } from "../services/folderService";
+import { getPromptSidebarDetail, type PromptSidebarDetail } from "../services/folderService";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -286,9 +286,10 @@ const CrossCheckA = () => {
     const [activeTab, setActiveTab] = useState('chatgpt');
     const [showModal, setShowModal] = useState(false);
     const [showBookmarkModal, setShowBookmarkModal] = useState(false);
-    const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
+    const [selectedFolder, setSelectedFolder] = useState<PromptSidebarDetail | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [folders, setFolders] = useState<Folder[]>([]);
+    const [folders, setFolders] = useState<PromptSidebarDetail[]>([]);
+    const [promptDetail, setPromptDetail] = useState<PromptSidebarDetail | null>(null);
     
     // 각 AI별 북마크 상태
     const [bookmarkStates, setBookmarkStates] = useState({
@@ -298,19 +299,24 @@ const CrossCheckA = () => {
         perplexity: false
     });
 
-    // 폴더 데이터 가져오기
+    // 프롬프트 상세 정보 가져오기
     useEffect(() => {
-        const fetchFolders = async () => {
+        const fetchPromptDetail = async () => {
+            if (!promptId) return;
+            
             try {
-                const folderData = await getFolders();
-                setFolders(folderData);
+                setIsLoading(true);
+                const detail = await getPromptSidebarDetail(promptId);
+                setPromptDetail(detail);
             } catch (error) {
-                console.error('폴더 목록 조회 실패:', error);
+                console.error('프롬프트 상세 정보 조회 실패:', error);
+            } finally {
+                setIsLoading(false);
             }
         };
-        
-        fetchFolders();
-    }, []);
+
+        fetchPromptDetail();
+    }, [promptId]);
 
     // location.state가 변경될 때 activeTab 업데이트
     useEffect(() => {

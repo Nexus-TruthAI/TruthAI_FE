@@ -9,7 +9,8 @@ import BookmarkFillIcon from "../Icons/BookmarkFill.png";
 import CopyIcon from "../Icons/Copy.svg";
 import Questionmark from "../Icons/QuestionMark.png";
 import BookmarkModal from "../Components/BookmarkModal";
-import { getFolders, type Folder } from "../services/folderService";
+import { getFolders, type Folder, getPromptDetail, type PromptDetail } from "../services/folderService";
+import { usePrompt } from "../Context/PromptContext";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -333,7 +334,36 @@ const MyFolderPD = () => {
     const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
     const [folders, setFolders] = useState<Folder[]>([]);
     const [refreshKey, setRefreshKey] = useState(0);
+    const [promptDetail, setPromptDetail] = useState<PromptDetail | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const { id } = useParams<{ id: string }>();
+    const { promptId } = usePrompt();
+    
+    // 프롬프트 상세 정보 가져오기
+    useEffect(() => {
+        const fetchPromptDetail = async () => {
+            if (!promptId) {
+                console.log('promptId가 없습니다.');
+                return;
+            }
+            
+            try {
+                setLoading(true);
+                setError(null);
+                const data = await getPromptDetail(promptId);
+                setPromptDetail(data);
+                console.log('프롬프트 상세 정보:', data);
+            } catch (err) {
+                console.error('프롬프트 상세 정보 조회 실패:', err);
+                setError('프롬프트 상세 정보를 불러올 수 없습니다.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        fetchPromptDetail();
+    }, [promptId]);
     
     // 폴더 목록 새로고침 함수
     const refreshFolderSidebar = () => {
@@ -354,7 +384,7 @@ const MyFolderPD = () => {
         fetchFolders();
     }, [refreshKey]);
     
-    // 임시 데이터 (백엔드에서 받아올 예정)
+    // 임시 데이터 (백엔드에서 받아올 예정) - 이제 사용하지 않음
     const tempData = {
         1: {
             title: "인공지능 트렌드 요약",
@@ -383,8 +413,30 @@ const MyFolderPD = () => {
         }
     };
     
-    // 현재 ID에 해당하는 데이터 가져오기
-    const currentData = tempData[Number(id) as keyof typeof tempData];
+    // optimizedPrompt에서 ```prompt와 끝의 ``` 제거하는 함수
+    const parseOptimizedPrompt = (prompt: string) => {
+        // ```prompt로 시작하는 경우 제거
+        let parsed = prompt;
+        if (prompt.startsWith('```prompt')) {
+            parsed = prompt.substring(9); // ```prompt (9글자) 제거
+        } else if (prompt.startsWith('```')) {
+            parsed = prompt.substring(3); // ``` (3글자) 제거
+        }
+        
+        // 끝에 ```가 있는 경우 제거
+        if (parsed.endsWith('```')) {
+            parsed = parsed.substring(0, parsed.length - 3);
+        }
+        
+        return parsed.trim();
+    };
+
+    // 현재 ID에 해당하는 데이터 가져오기 - 이제 API에서 받아온 데이터 사용
+    const currentData = promptDetail ? {
+        title: promptDetail.summary,
+        modifiedPrompt: parseOptimizedPrompt(promptDetail.optimizedPrompt),
+        name: promptDetail.originalPrompt
+    } : null;
     
     useEffect(() => {
         console.log("showDropdown: ", showDropdown);
@@ -396,16 +448,13 @@ const MyFolderPD = () => {
             if (showDropdown && !target.closest('.dropdown-container')) {
                 setShowDropdown(false);
             }
-            if (showTooltip && !target.closest('.tooltip-container')) {
-                setShowTooltip(false);
-            }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [showDropdown, showTooltip]);
+    }, [showDropdown]);
 
     const handleModalCancel = () => {
         setShowModal(false);
@@ -437,29 +486,13 @@ const MyFolderPD = () => {
         setShowBookmarkModal(true);
     };
 
-    const handleQuestionmarkClick = () => {
-        setShowTooltip(prev => !prev);
+    const handleQuestionmarkMouseEnter = () => {
+        setShowTooltip(true);
     }
 
-    const handleBookmarkSave = () => {
-        if (selectedFolder) {
-            // 북마크 상태 업데이트
-            if (bookmarkType === 'prompt') {
-                setIsPromptBookmarked(true);
-            } else if (bookmarkType === 'modifiedPrompt') {
-                setIsModifiedPromptBookmarked(true);
-            }
-            setShowBookmarkModal(false);
-            setSelectedFolder(null);
-            alert(`${selectedFolder.name}에 북마크가 저장되었습니다.`);
-        }
-    };
-
-    const handleBookmarkModalClose = () => {
-        setShowBookmarkModal(false);
-        setSelectedFolder(null);
-        setBookmarkType(null);
-    };
+    const handleQuestionmarkMouseLeave = () => {
+        setShowTooltip(false);
+    }
 
     // ID가 유효하지 않거나 데이터가 없는 경우
     if (!id || !currentData) {
@@ -470,7 +503,15 @@ const MyFolderPD = () => {
                     <FolderSidebar />
                     <MainWrapper>
                         <CenterWrapper>
-                            <MainText>프롬프트를 찾을 수 없습니다</MainText>
+                            {loading ? (
+                                <MainText>프롬프트 정보를 불러오는 중...</MainText>
+                            ) : error ? (
+                                <MainText style={{ color: '#ff6b6b' }}>{error}</MainText>
+                            ) : !promptId ? (
+                                <MainText>프롬프트 ID가 없습니다</MainText>
+                            ) : (
+                                <MainText>프롬프트를 찾을 수 없습니다</MainText>
+                            )}
                         </CenterWrapper>
                     </MainWrapper>
                 </CrossCheckWrapper>
@@ -482,7 +523,7 @@ const MyFolderPD = () => {
         <Wrapper>
             <Topbar />
             <CrossCheckWrapper>
-                <FolderSidebar onRefresh={refreshFolderSidebar} />
+                <FolderSidebar />
                 <MainWrapper>
                     <CenterWrapper>
                             <MainText>{currentData.title}</MainText>
@@ -493,9 +534,6 @@ const MyFolderPD = () => {
                                         {currentData.modifiedPrompt}
                                     </ContentText>
                                         <IconContainer>
-                                            <IconButton onClick={() => handleBookmarkClick('modifiedPrompt')}>
-                                                <img src={isModifiedPromptBookmarked ? BookmarkFillIcon : BookmarkIcon} alt="Bookmark" className="bookmark" />
-                                            </IconButton>
                                             <IconButton onClick={() => handleCopyClick(currentData.modifiedPrompt)}>
                                                 <img src={CopyIcon} alt="Copy" className="copy" />
                                             </IconButton>
@@ -506,7 +544,10 @@ const MyFolderPD = () => {
                                 <TitleWrapper>
                                     <Title>내가 입력한 프롬프트</Title>
                                     <TooltipContainer className="tooltip-container">
-                                        <IconButton onClick={() => handleQuestionmarkClick()}>
+                                        <IconButton 
+                                            onMouseEnter={handleQuestionmarkMouseEnter}
+                                            onMouseLeave={handleQuestionmarkMouseLeave}
+                                        >
                                             <img src={Questionmark} alt="questionmark" className="questionmark" />
                                         </IconButton>
                                         {showTooltip && (
@@ -557,15 +598,6 @@ const MyFolderPD = () => {
                         </ModalButtons>
                     </Modal>
                 </ModalOverlay>
-            )}
-            {showBookmarkModal && bookmarkType && (
-                <BookmarkModal
-                    folders={folders}
-                    onClose={handleBookmarkModalClose}
-                    onSave={handleBookmarkSave}
-                    selectedFolder={selectedFolder}
-                    setSelectedFolder={setSelectedFolder}
-                />
             )}
         </Wrapper>
     );
