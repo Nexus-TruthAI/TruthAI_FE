@@ -526,9 +526,9 @@ const CrossCheckQ = () => {
                     <Modal>
                         <ModalTitle>
                             {modalType === 'noInput' ? '입력된 내용이 없습니다' : 
-                             modalType === 'noAI' ? 'AI가 선택되지 않았습니다' : 
-                             modalType === 'error' ? '서버 오류가 발생했습니다' :
-                             '환각여부 검증기능 사용불가'}
+                                modalType === 'noAI' ? 'AI가 선택되지 않았습니다' : 
+                                modalType === 'error' ? '서버 오류가 발생했습니다' :
+                                '환각여부 검증기능 사용불가'}
                         </ModalTitle>
                         <ModalContent>
                             {modalType === 'noInput' 

@@ -351,22 +351,29 @@ const PaginationContainer = styled.div`
 
 const PageButton = styled.button<{ $isActive: boolean }>`
     padding: 0.5rem 1rem;
-    border: 1px solid #e9ecef;
     border-radius: 8px;
-    background-color: ${props => props.$isActive ? '#3B5AF7' : '#ffffff'};
-    color: ${props => props.$isActive ? '#ffffff' : '#494949'};
     font-size: 14px;
     font-weight: 600;
+    color:rgb(129, 129, 129);
+    background-color: ${props => props.$isActive ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.2)'};
+    color: ${props => props.$isActive ? '#C2CCFD' : 'rgb(255, 253, 253)'};
     cursor: pointer;
     transition: all 0.2s ease;
 
     &:hover:not(:disabled) {
-        background-color: #e9ecef;
+        background-color: rgba(255, 255, 255, 0.3);
+        border: 1px solid rgb(129, 129, 129);
     }
 
     &:disabled {
-        color: #CECECE;
+        color: rgb(129, 129, 129);
         cursor: not-allowed;
+        border: none;
+    }
+
+    &:active {
+        border: none;
+        outline: none;
     }
 `;
 
@@ -391,28 +398,20 @@ const MyFolderCL = () => {
         try {
             setLoading(true);
             setError(null);
-            // 실제 API 호출
             const data = await getCrossCheckList();
             setCrossCheckList(data);
             console.log('교차검증 목록 조회 성공:', data);
         } catch (err) {
             setError('교차검증 목록 조회 실패');
             console.error('교차검증 목록 조회 실패:', err);
-            // 에러 발생 시 빈 배열로 설정
-            setCrossCheckList([]);
-        } finally {
-            setLoading(false);
+            } finally {
+                setLoading(false);
         }
     };
 
     useEffect(() => {
-        console.log('🔄 MyFolderCL - 교차검증 목록 조회 시작');
         fetchCrossCheckList();
     }, []);
-
-    useEffect(() => {
-        console.log(' MyFolderCL - crossCheckList 상태 변경:', crossCheckList);
-    }, [crossCheckList]);
 
     // 페이지네이션 계산
     const totalPages = Math.ceil(crossCheckList.length / itemsPerPage);
@@ -529,8 +528,6 @@ const MyFolderCL = () => {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
         });
     };
 
@@ -566,16 +563,9 @@ const MyFolderCL = () => {
         }
     };
 
-    const handleItemClick = (crossCheckId: number) => {
-        // 교차검증 아이템 클릭 시 CrossCheckA로 이동
-        console.log('선택된 교차검증 ID:', crossCheckId);
-        navigate('/crosschecka', { 
-            state: { 
-                promptId: crossCheckId,
-                responses: [], // 실제로는 백엔드에서 가져와야 함
-                selectedAIs: [] // 실제로는 백엔드에서 가져와야 함
-            } 
-        });
+    const handleItemClick = (promptId: number) => {
+        console.log('선택된 교차검증 ID:', promptId);
+        navigate(`/crosschecka/${promptId}`);
     };
 
     return (

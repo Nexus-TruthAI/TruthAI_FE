@@ -9,7 +9,7 @@ export interface Folder {
 export const getFolders = async (folderType: 'prompt' | 'crosscheck'): Promise<Folder[]> => {
   try {
     console.log('폴더 목록 조회 API 요청 시작');
-    console.log('요청 URL:', `/folder/${folderType}`);
+    console.log('요청 URL:', `/folder/folderList/${folderType}`);
     
     const response = await api.get(`/folder/folderList/${folderType}`);
     
@@ -129,6 +129,10 @@ export const getCrossCheckList = async (): Promise<OptimizedPrompt[]> => {
   try {
     console.log('crosscheck 결과 리스트 조회 API 요청 시작');
     
+    // 토큰 직접 가져오기
+    const token = sessionStorage.getItem("accessToken");
+    console.log('현재 토큰:', token ? '존재함' : '없음');
+    
     const response = await api.get('/prompt/crosscheck-list');
     
     console.log('성공:', response.data);
@@ -174,10 +178,10 @@ export const getPromptDetail = async (promptId: number): Promise<PromptDetail> =
 };
 
 // 폴더 내 프롬프트 목록 조회
-export const getFolderPrompts = async (folderId: number, type: 'prompt' | 'crosscheck'): Promise<FolderPrompt[]> => {
+export const getFolderPrompts = async (folderId: number): Promise<FolderPrompt[]> => {
   try {
     console.log('폴더 내 프롬프트 목록 조회 API 요청 시작');
-    const response = await api.get(`/folder/${folderId}/${type}`);
+    const response = await api.get(`/folder/promptList/${folderId}`);
     console.log('성공:', response.data);
     if (Array.isArray(response.data)) {
       return response.data;
