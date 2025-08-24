@@ -342,6 +342,34 @@ const DropdownItemSecond = styled.div`
     }
 `
 
+const PaginationContainer = styled.div`
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+    gap: 0.5rem;
+`;
+
+const PageButton = styled.button<{ $isActive: boolean }>`
+    padding: 0.5rem 1rem;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background-color: ${props => props.$isActive ? '#3B5AF7' : '#ffffff'};
+    color: ${props => props.$isActive ? '#ffffff' : '#494949'};
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background-color: #e9ecef;
+    }
+
+    &:disabled {
+        color: #CECECE;
+        cursor: not-allowed;
+    }
+`;
+
 const MyFolderCL = () => {
     const [showModal, setShowModal] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -353,6 +381,10 @@ const MyFolderCL = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [crossCheckList, setCrossCheckList] = useState<OptimizedPrompt[]>([]);
+    
+    // 페이지네이션 상태 추가
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
 
     // 교차검증 목록을 가져오는 함수
     const fetchCrossCheckList = async () => {
@@ -382,7 +414,78 @@ const MyFolderCL = () => {
         console.log(' MyFolderCL - crossCheckList 상태 변경:', crossCheckList);
     }, [crossCheckList]);
 
-    // 폴더 목록 새로고침 함수 제거 - 더 이상 필요하지 않음
+    // 페이지네이션 계산
+    const totalPages = Math.ceil(crossCheckList.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentItems = crossCheckList.slice(startIndex, endIndex);
+
+    // 페이지 변경 핸들러
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
+    // 페이지네이션 컴포넌트
+    const Pagination = () => {
+        if (totalPages <= 1) return null;
+
+        const pages = [];
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            pages.push(
+                <PageButton
+                    key={i}
+                    onClick={() => handlePageChange(i)}
+                    $isActive={i === currentPage}
+                >
+                    {i}
+                </PageButton>
+            );
+        }
+
+        return (
+            <PaginationContainer>
+                <PageButton
+                    onClick={() => handlePageChange(1)}
+                    disabled={currentPage === 1}
+                    $isActive={false}
+                >
+                    처음
+                </PageButton>
+                <PageButton
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    $isActive={false}
+                >
+                    이전
+                </PageButton>
+                {pages}
+                <PageButton
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    $isActive={false}
+                >
+                    다음
+                </PageButton>
+                <PageButton
+                    onClick={() => handlePageChange(totalPages)}
+                    disabled={currentPage === totalPages}
+                    $isActive={false}
+                >
+                    마지막
+                </PageButton>
+            </PaginationContainer>
+        );
+    };
+
     
     useEffect(() => {
         console.log("showDropdown: ", showDropdown);
@@ -521,16 +624,19 @@ const MyFolderCL = () => {
                                     교차검증 데이터가 없습니다.
                                 </div>
                             ) : (
-                                crossCheckList.map((crossCheck) => (
-                                    <PromptItem 
-                                        key={crossCheck.id} 
-                                        onClick={() => handleItemClick(crossCheck.id)}
-                                        style={{ cursor: 'pointer' }}
-                                    >
-                                        <PromptTitle>{crossCheck.summary}</PromptTitle>
-                                        <PromptDate>{formatDate(crossCheck.createdAt)}</PromptDate>
-                                    </PromptItem>
-                                ))
+                                <>
+                                    {currentItems.map((crossCheck) => (
+                                        <PromptItem 
+                                            key={crossCheck.id} 
+                                            onClick={() => handleItemClick(crossCheck.id)}
+                                            style={{ cursor: 'pointer' }}
+                                        >
+                                            <PromptTitle>{crossCheck.summary}</PromptTitle>
+                                            <PromptDate>{formatDate(crossCheck.createdAt)}</PromptDate>
+                                        </PromptItem>
+                                    ))}
+                                    <Pagination />
+                                </>
                             )}
                         </PromptList>
 
