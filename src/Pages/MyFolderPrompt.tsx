@@ -348,7 +348,7 @@ const MyFolderPrompt = () => {
             try {
                 setLoading(true);
                 setError(null);
-                const data = await getFolderPrompts(folderId, 'prompt');
+                const data = await getFolderPrompts(folderId);
                 setPromptList(data);
                 console.log('폴더 내 프롬프트 목록:', data);
             } catch (err) {

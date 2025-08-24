@@ -351,23 +351,29 @@ const PaginationContainer = styled.div`
 
 const PageButton = styled.button<{ $isActive: boolean }>`
     padding: 0.5rem 1rem;
-    border: 1px solid #e9ecef;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 600;
-    color: #495057;
-    background-color: ${props => props.$isActive ? '#3B5AF7' : '#ffffff'};
-    color: ${props => props.$isActive ? '#ffffff' : '#495057'};
+    color:rgb(129, 129, 129);
+    background-color: ${props => props.$isActive ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.2)'};
+    color: ${props => props.$isActive ? '#C2CCFD' : 'rgb(255, 253, 253)'};
     cursor: pointer;
     transition: all 0.2s ease;
 
     &:hover:not(:disabled) {
-        background-color: #e9ecef;
+        background-color: rgba(255, 255, 255, 0.3);
+        border: 1px solid rgb(129, 129, 129);
     }
 
     &:disabled {
-        color: #ced4da;
+        color: rgb(129, 129, 129);
         cursor: not-allowed;
+        border: none;
+    }
+
+    &:active {
+        border: none;
+        outline: none;
     }
 `;
 
