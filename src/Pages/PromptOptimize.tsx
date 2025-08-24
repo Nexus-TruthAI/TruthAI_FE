@@ -211,26 +211,23 @@ const ArrowIcon = styled.img`
   filter: invert(1) brightness(0); // 완전 검정으로
 `
 
-interface PromptData {
-  id: number;
-  originalPrompt: string;
-  optimizedPrompt?: string;
-  isOptimized: boolean;
-}
 
 
 const PromptOptimize = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const reset = Boolean(location.state?.reset); // ✅ reset flag
 
   // navigate로 전달된 값 가져오기
   const passedPrompt = location.state?.optimizedPrompt || "";
   const [isOptimized, setIsOptimized] = useState(location.state?.isOptimized || false);
 
-  const { promptId } = usePrompt();
+  const { promptId, setPromptId } = usePrompt();
   const { id } = useParams(); // URL : /promptopt/:id
-  const currentPromptId = promptId ?? (id ? Number(id) : null);
-  //const { prompt, setPrompt, isOptimized, setIsOptimized } = usePrompt(); // 프롬프트 입력 / 결과 공용
+
+  // URL의 id를 항상 최우선으로, 그게 없으면 reset일 때는 context id 무시
+  const urlId = id ? Number(id) : null;
+  const currentPromptId = urlId ?? (reset ? null : promptId);
 
   // ✅ 로컬 상태
   const [prompt, setPrompt] = useState("");
@@ -246,7 +243,50 @@ const PromptOptimize = () => {
   const [showAlertModal, setShowAlertModal] = useState(false);
 
   
-  {/* ✅ passedPrompt가 있으면 우선 적용, 없으면 초기화 */}
+  // ✅ reset이면 로컬 상태 + context promptId 초기화
+  React.useEffect(() => {
+    if (reset) {
+      setPrompt("");
+      setIsOptimized(false);
+      setOriginalPrompt("");
+      setIsBookmarked(false);
+      setSelectedFolder(null);
+      setPromptId(null); // ⭐ 컨텍스트 id까지 비워서 fetch 방지
+    }
+  }, [reset, setPromptId]);
+
+  // ✅ passedPrompt가 있으면 그걸로 채우고, 없으면 빈값 유지(리셋 케이스 대비)
+  React.useEffect(() => {
+    if (passedPrompt) {
+      setPrompt(passedPrompt);
+      setIsOptimized(true);
+    } else if (reset) {
+      // 이미 위 reset effect에서 비움
+    } else {
+      // 아무 것도 안 함 (fetch가 처리)
+    }
+  }, [passedPrompt, reset]);
+
+  // ✅ 사이드바에서 타고 올 때만 API 조회 (reset/passedPrompt가 있으면 조회 금지)
+  React.useEffect(() => {
+    if (!currentPromptId || passedPrompt || reset) return;
+
+    const fetchPrompt = async () => {
+      try {
+        const res = await api.get(`/prompt/${currentPromptId}`);
+        setPrompt(res.data.optimizedPrompt ?? res.data.originalPrompt);
+        setOriginalPrompt(res.data.originalPrompt);
+        setIsOptimized(!!res.data.optimizedPrompt);
+      } catch (err) {
+        console.error("프롬프트 조회 실패", err);
+      }
+    };
+
+    fetchPrompt();
+  }, [currentPromptId, passedPrompt, reset]);
+
+
+  {/* ✅ passedPrompt가 있으면 우선 적용, 없으면 초기화
   React.useEffect(() => {
     if (passedPrompt) {
       setPrompt(passedPrompt);
@@ -255,9 +295,9 @@ const PromptOptimize = () => {
       setPrompt("");
       setIsOptimized(false);
     }
-  }, [passedPrompt]);
+  }, [passedPrompt]);*/}
 
-  {/* ✅ 사이드바에서 타고 넘어올 때 API 조회 (passedPrompt 없을 때만) */}
+  {/* ✅ 사이드바에서 타고 넘어올 때 API 조회 (passedPrompt 없을 때만)
   React.useEffect(() => {
     if (!currentPromptId || passedPrompt) return;
 
@@ -273,15 +313,15 @@ const PromptOptimize = () => {
     };
 
     fetchPrompt();
-  }, [currentPromptId, passedPrompt]);
+  }, [currentPromptId, passedPrompt]); */}
 
 
-  { /* 🛠️ 프롬프트 예시 클릭 */ }
+  { /* 프롬프트 예시 클릭 */ }
   const handleExampleClick = (text: string) => {
     setPrompt(text);
   };
 
-  { /* 🛠️ -> 버튼 클릭 */ }
+  { /* 버튼 클릭 */ }
   const handleSend = async () => {
     if (!prompt.trim()) {
       setShowAlertModal(true);
@@ -290,8 +330,8 @@ const PromptOptimize = () => {
     navigate("/promptoptdetail", { state: { prompt } });
   };
 
-  // ```prompt와 ``` 제거하는 함수
-  const parsePromptForCrossCheck = (prompt: string) => {
+  {/** ```prompt와 ``` 제거하는 함수 */}
+    const parsePromptForCrossCheck = (prompt: string) => {
     // ```prompt로 시작하는 경우 제거
     let parsed = prompt;
     if (prompt.startsWith('```prompt')) {
@@ -315,7 +355,7 @@ const PromptOptimize = () => {
     navigate("/crosscheckq", { state: { optimizedPrompt: cleanedPrompt } });
   };
 
-  /*   🛠️ 최적화된 프롬프트 관련 함수   */
+  {/*   🛠️ 최적화된 프롬프트 관련 함수   */}
   // 1. 복사 기능
   const handleCopy = () => {
     if (isOptimized && prompt) {
@@ -339,6 +379,14 @@ const PromptOptimize = () => {
       setIsLoading(false);
     }
   };
+
+  React.useEffect(() => {
+    if (location.state?.reset) {
+      setPrompt("");
+      setIsOptimized(false);
+      setOriginalPrompt("");
+    }
+  }, [location.key]);
 
   // 📂 폴더 데이터 불러오기
   React.useEffect(() => {

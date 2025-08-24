@@ -118,12 +118,13 @@ const Sidebar = () => {
                                 {item.summary}
                             </PromptItem>
                         ))}
-                        {/*prompts.map((item, idx) => (
-                            <PromptItem key={idx}>{item}</PromptItem>
-                        ))*/}
                     </PromptList>
                 </PromptListContainer>
-                <NewBtn onClick={() => navigate('/promptopt')}>{prompt_text}</NewBtn>
+                <NewBtn 
+                onClick={() => navigate('/promptopt', { state: { reset: true } })}
+                >
+                {prompt_text}
+                </NewBtn>
             </PromptWrapper>
             <CrossChecktWrapper>
                 <TitleText>교차검증</TitleText>
@@ -132,9 +133,6 @@ const Sidebar = () => {
                         {promptList.map((item) => (
                             <PromptItem key={item.promptId}>{item.summary}</PromptItem>
                         ))}
-                        {/*prompts.map((item, idx) => (
-                            <PromptItem key={idx}>{item}</PromptItem>
-                        ))*/}
                     </PromptList>
                 </PromptListContainer>
                 <NewBtn onClick={() => navigate('/crosscheckq')}>{cross_text}</NewBtn>
