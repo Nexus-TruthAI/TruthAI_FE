@@ -1,4 +1,3 @@
-import React from "react";
 import styled from "styled-components";
 import RoundArrowBtn from "../Components/RoundArrowBtn";
 import Topbar from "../Components/Topbar";
@@ -106,7 +105,7 @@ AI 모델로부터 가장 정확하고 관련성 높은 결과를 얻을 수 있
                         <ChoiceText>
                             {text1}
                         </ChoiceText>
-                        <RoundArrowBtn onClick={() => navigate('/promptopt')}>사용하기</RoundArrowBtn>
+                        <RoundArrowBtn onClick={() => navigate('/promptopt', { state: { reset: true }, replace: true })}>사용하기</RoundArrowBtn>
                     </ChoiceBox>
                     <ChoiceBox>
                         <TitleImg><img src={RobotIcon}/></TitleImg>

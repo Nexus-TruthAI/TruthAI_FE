@@ -1,5 +1,4 @@
 // ExternalReference.tsx
-import React from "react";
 import styled from "styled-components";
 
 import ExRefoIcon from "../Icons/ExternalRefer.png";

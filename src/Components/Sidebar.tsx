@@ -80,13 +80,12 @@ const Sidebar = () => {
     //const [prompts, setPrompts] = useState<{promptId: number, summary: string}[]>([]);
     const { setPromptId } = usePrompt();
     const [promptList, setPromptList] = useState<{promptId: number, summary: string}[]>([]);
-    const [crossCheckList, setCrossCheckList] = useState<{promptId: number, summary: string}[]>([]);
+    //const [crossCheckList, setCrossCheckList] = useState<{promptId: number, summary: string}[]>([]);
 
-    //const prompts = Array(5).fill("최근 보고서 요약 요청").map((text, i) => `${text} ${i + 1}`);
 
     // Todo:
-    // 현재 api 자체는 잘 되는데 프롬프트 생성받으면 자동으로 처리되고 있는건지가 불분명
-    // 프롬프트와 교차검증이 따로 오는지도 불분명
+    // 프롬프트 리스트 조회에서 교차검증은 빠지고 있는지 체크
+    // 교차검증 리스트 조회 연동 필요
 
     React.useEffect(() => {
         const fetchSidebarPrompts = async () => {
@@ -101,6 +100,32 @@ const Sidebar = () => {
         fetchSidebarPrompts();
     }, [setPromptList]);
 
+    // 상세 조회 후 페이지 이동
+    const handlePromptClick = async (promptId: number) => {
+        try {
+        const res = await api.get("/prompt/side-bar/details", {
+            params: { promptId },
+        });
+
+        const detail = res.data; 
+        // detail: { promptId, originalPrompt, optimizedPrompt, summary, answerDto }
+
+        setPromptId(promptId);
+
+        navigate(`/promptopt/${promptId}`, {
+            state: {
+            originalPrompt: detail.originalPrompt,
+            optimizedPrompt: detail.optimizedPrompt,
+            isOptimized: !!detail.optimizedPrompt,
+            answerDto: detail.answerDto,
+            },
+        });
+        } catch (err) {
+        console.error("프롬프트 상세 조회 실패", err);
+        }
+    };
+
+
     return (
         <Wrapper>
             <PromptWrapper>
@@ -110,20 +135,18 @@ const Sidebar = () => {
                         {promptList.map((item) => (
                             <PromptItem
                                 key={item.promptId}
-                                onClick={() => {
-                                    setPromptId(item.promptId);
-                                    navigate(`/promptopt/${item.promptId}`);
-                                }}
+                                onClick={() => handlePromptClick(item.promptId)}
                             >
                                 {item.summary}
                             </PromptItem>
                         ))}
-                        {/*prompts.map((item, idx) => (
-                            <PromptItem key={idx}>{item}</PromptItem>
-                        ))*/}
                     </PromptList>
                 </PromptListContainer>
-                <NewBtn onClick={() => navigate('/promptopt')}>{prompt_text}</NewBtn>
+                <NewBtn 
+                onClick={() => navigate('/promptopt', { state: { reset: true } })}
+                >
+                {prompt_text}
+                </NewBtn>
             </PromptWrapper>
             <CrossChecktWrapper>
                 <TitleText>교차검증</TitleText>
@@ -132,9 +155,6 @@ const Sidebar = () => {
                         {promptList.map((item) => (
                             <PromptItem key={item.promptId}>{item.summary}</PromptItem>
                         ))}
-                        {/*prompts.map((item, idx) => (
-                            <PromptItem key={idx}>{item}</PromptItem>
-                        ))*/}
                     </PromptList>
                 </PromptListContainer>
                 <NewBtn onClick={() => navigate('/crosscheckq')}>{cross_text}</NewBtn>

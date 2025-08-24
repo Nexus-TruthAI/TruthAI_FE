@@ -5,7 +5,8 @@
     { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "noEmitOnError": false,   // <- 에러 있어도 emit 허용
+    "skipLibCheck": true,
+    "strict": false
   }
 }

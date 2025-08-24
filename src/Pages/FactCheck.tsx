@@ -1,6 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect} from "react";
 import { useLocation } from "react-router-dom";
 import styled from "styled-components";
+
+import api from "../api";
+import { usePrompt } from "../Context/PromptContext";
 
 import Background from '../Icons/BackgroundLong.png';
 import Topbar from "../Components/Topbar";
@@ -230,48 +233,99 @@ const Tab = styled.button<{ $isActive: boolean }>`
         outline: none;
     }
 `
-const ContentArea = styled.div`
+const ScoreEmpty = styled.div`
     display: flex;
-    width: 44rem;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 2rem;
-    height: auto;
-    max-height: 50rem;
-    margin-bottom: 2rem;
-    overflow: auto;
-    position: relative;
-`
-
-const ContentText = styled.div`
-    color: #fff;
-    font-size: 14px;
+    font-size: 16px;
+    font-style: normal;
     font-weight: 600;
-    line-height: 1.6;
-    white-space: pre-line;
-    padding-bottom: 3rem;
-`
+    line-height: normal;
+    padding: 0.68rem 2rem;
+    width: 2rem;
+    height: 1.5rem;
+    justify-content: center;
+    align-items: center;
+    color: #FFFFFF; // ScoreDisplay와 글자 색 동일
+`;
+
+
+interface Reference {
+  title: string;
+  summary: string;
+  link: string;
+}
+
+interface AIResult {
+  hallucinationLevel: number;
+  similarity: number;
+  references: Reference[];
+}
+
+interface CrossCheckResponse {
+  coreTitle: string;
+  coreStatement: string;
+  gpt: AIResult;
+  claude: AIResult;
+  gemini: AIResult;
+  perplexity: AIResult;
+}
+
+// AI key 타입
+type AIKey = "gpt" | "claude" | "gemini" | "perplexity";
 
 const FactCheck = () => {
   const location = useLocation();
+  const { promptId} = usePrompt();
 
   // 공통주장 상태 (백엔드에서 받아올 것)
-  const [coreStatement, setCoreStatement] = useState("2025년에는 인공지능이 모든 산업에 걸쳐 혁신을 이끌며, 특히 헬스케어, 금융, 교육 분야에서 큰 변화를 가져올 것입니다. 또한, 지속 가능한 기술과 친환경 에너지 솔루션이 주목받으며, 사회 전반에 걸쳐 디지털 트랜스포메이션이 가속화될 것입니다.");
-  
-  // 선택된 AI들 (location.state에서 가져오거나 기본값)
-  const selectedAIs = location.state?.selectedAIs || [];
-  // 선택된 AI 중 첫 번째를 기본 탭으로 설정
-  const [activeTab, setActiveTab] = useState('chatgpt');
-  const [showModal, setShowModal] = useState(false);
+  const [coreTitle, setCoreTitle] = useState("");
+  const [coreStatement, setCoreStatement] = useState("");
+  //const [results, setResults] = useState<any>({}); // gpt, claude, gemini ...
 
-  const tabs = [
-    { id: 'chatgpt', name: 'ChatGPT' },
-    { id: 'claude', name: 'Claude' },
-    { id: 'gemini', name: 'Gemini' },
-    { id: 'perplexity', name: 'Perplexity' }
+  const [results, setResults] = useState<Partial<Record<AIKey, AIResult>>>({});
+  const selectedAIs: AIKey[] = location.state?.selectedAIs || [];
+  const [activeTab, setActiveTab] = useState<AIKey>(selectedAIs[0]);
+  
+  // 선택된 AI들 (없으면 기본 전부)
+  //const selectedAIs = location.state?.selectedAIs || ["chatgpt", "claude", "gemini", "perplexity"];
+  //const [activeTab, setActiveTab] = useState(selectedAIs[0] || "chatgpt");
+
+  //const selectedAIs = location.state?.selectedAIs || [];
+  //const [activeTab, setActiveTab] = useState('chatgpt');
+
+
+  const tabs: { id: AIKey; name: string }[] = [
+    { id: "gpt", name: "ChatGPT" },
+    { id: "claude", name: "Claude" },
+    { id: "gemini", name: "Gemini" },
+    { id: "perplexity", name: "Perplexity" }
   ];
 
-  const mockAiReferences = {
+  const hallucinationText = ["낮음", "보통", "높음"];
+
+  useEffect(() => {
+    const fetchCrossCheck = async () => {
+      try {
+        if (!promptId) return;
+        const res = await api.post<CrossCheckResponse>(`/crosscheck/${promptId}`);
+        const data = res.data;
+
+        setCoreTitle(data.coreTitle);
+        setCoreStatement(data.coreStatement);
+        setResults({
+          gpt: data.gpt,
+          claude: data.claude,
+          gemini: data.gemini,
+          perplexity: data.perplexity,
+        });
+      } catch (err) {
+        console.error("교차검증 API 호출 실패", err);
+      }
+    };
+
+    fetchCrossCheck();
+  }, [promptId]);
+
+  /*const mockAiReferences = {
   "chatgpt": [
     {
       title: "AI 윤리 가이드라인 발표",
@@ -297,7 +351,7 @@ const FactCheck = () => {
     }
   ],
   "gemini": [],
-};
+};*/
 
   // location.state가 변경될 때 activeTab 업데이트
   useEffect(() => {
@@ -328,7 +382,7 @@ const FactCheck = () => {
       <FactCheckWrapper>
         <Sidebar/>
         <MainWrapper>
-          <SubText>2025년 트렌드 분석</SubText>
+          <SubText>{coreTitle}</SubText>
           <MainText>환각 여부를 확인해보세요.</MainText>
           <CoreStatementWrapper>
             <CoreTitle>공통된 종합 주장</CoreTitle>
@@ -355,10 +409,14 @@ const FactCheck = () => {
                 </TooltipWrapper>
               </ScoreTitleWrapper>
               <ScoreWrapper>
-                <ScoreDisplay>낮음</ScoreDisplay>
-                <ScoreDisplay>낮음</ScoreDisplay>
-                <ScoreDisplay>낮음</ScoreDisplay>
-                <ScoreDisplay>낮음</ScoreDisplay>
+                {tabs.map(tab => {
+                  const level = results[tab.id]?.hallucinationLevel;
+                  return level !== undefined && level !== null ? (
+                    <ScoreDisplay key={tab.id}>{hallucinationText[level]}</ScoreDisplay>
+                  ) : (
+                    <ScoreEmpty key={tab.id}>-</ScoreEmpty>
+                  );
+                })}
               </ScoreWrapper>
             </HallucinationWrapper>
             <Line/>
@@ -371,10 +429,14 @@ const FactCheck = () => {
                 </TooltipWrapper>
               </ScoreTitleWrapper>
               <ScoreWrapper>
-                <ScoreDisplay>85%</ScoreDisplay>
-                <ScoreDisplay>85%</ScoreDisplay>
-                <ScoreDisplay>85%</ScoreDisplay>
-                <ScoreDisplay>85%</ScoreDisplay>
+                {tabs.map(tab => {
+                  const similarity = results[tab.id]?.similarity;
+                  return similarity !== undefined && similarity !== null ? (
+                    <ScoreDisplay key={tab.id}>{`${similarity}%`}</ScoreDisplay>
+                  ) : (
+                    <ScoreEmpty key={tab.id}>-</ScoreEmpty>
+                  );
+                })}
               </ScoreWrapper>
             </HallucinationWrapper>
           </SimilarityScoreWrapper>
@@ -391,7 +453,15 @@ const FactCheck = () => {
                 </Tab>
               ))}
             </TabContainer>
-            <ExternalReference activeTab={activeTab} aiReferences={mockAiReferences} />
+            <ExternalReference
+              activeTab={activeTab}
+              aiReferences={{
+                gpt: results.gpt?.references || [],
+                claude: results.claude?.references || [],
+                gemini: results.gemini?.references || [],
+                perplexity: results.perplexity?.references || [],
+              }}
+            />
           </div>
         </MainWrapper>
 

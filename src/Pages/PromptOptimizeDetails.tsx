@@ -281,7 +281,7 @@ const PromptOptimizeDetails = () => {
   const [prompt] = useState(passedPrompt); // 수정 불가, api 전달용
   const [domain, setDomain] = useState<string | null>(null);
   const [persona, setPersona] = useState("");
-  const [isOptimized, setIsOptimized] = useState(false);
+  const [_isOptimized, setIsOptimized] = useState(false);
   const [selectedDomain, setSelectedDomain] = useState<string>(domain || "");
 
   const [isLoading, setIsLoading] = useState(false);
