@@ -2,9 +2,9 @@
 import axios from "axios";
 
 // Axios 인스턴스 생성
+// ✅ 개발용, 배포용 구분됨
 const api = axios.create({
-  // baseURL: import.meta.env.VITE_API_BASE_URL,  // 개발용일땐 / 로 접근
-  baseURL: '/',  // 배포용일땐 도메인 접근
+  baseURL: import.meta.env.VITE_API_BASE_URL,
 });
 
 // 요청 인터셉터: 액세스 토큰 자동 첨부
