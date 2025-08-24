@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import Topbar from "../Components/Topbar";
 import FolderSidebar from "../Components/FolderSidebar";
 import Background from "../Icons/BackgroundLong.png";
 import { useParams } from "react-router-dom";
-import BookmarkIcon from "../Icons/BookmarkEmpty.png";
-import BookmarkFillIcon from "../Icons/BookmarkFill.png";
+//import BookmarkIcon from "../Icons/BookmarkEmpty.png";
+//import BookmarkFillIcon from "../Icons/BookmarkFill.png";
 import CopyIcon from "../Icons/Copy.svg";
 import Questionmark from "../Icons/QuestionMark.png";
-import BookmarkModal from "../Components/BookmarkModal";
+//import BookmarkModal from "../Components/BookmarkModal";
 import { getFolders, type Folder, getPromptDetail, type PromptDetail } from "../services/folderService";
 import { usePrompt } from "../Context/PromptContext";
 
@@ -326,14 +326,14 @@ const TooltipContainer = styled.div`
 const MyFolderPD = () => {
     const [showModal, setShowModal] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
-    const [isPromptBookmarked, setIsPromptBookmarked] = useState(false);
-    const [isModifiedPromptBookmarked, setIsModifiedPromptBookmarked] = useState(false);
+    const [_isPromptBookmarked, _setIsPromptBookmarked] = useState(false);
+    const [_isModifiedPromptBookmarked, _setIsModifiedPromptBookmarked] = useState(false);
     const [showTooltip, setShowTooltip] = useState(false);
-    const [showBookmarkModal, setShowBookmarkModal] = useState(false);
-    const [bookmarkType, setBookmarkType] = useState<'prompt' | 'modifiedPrompt' | null>(null);
-    const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
-    const [folders, setFolders] = useState<Folder[]>([]);
-    const [refreshKey, setRefreshKey] = useState(0);
+    const [_showBookmarkModal, _setShowBookmarkModal] = useState(false);
+    const [_bookmarkType, _setBookmarkType] = useState<'prompt' | 'modifiedPrompt' | null>(null);
+    const [_selectedFolder, _setSelectedFolder] = useState<Folder | null>(null);
+    const [_folders, setFolders] = useState<Folder[]>([]);
+    const [refreshKey, _setRefreshKey] = useState(0);
     const [promptDetail, setPromptDetail] = useState<PromptDetail | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -366,9 +366,10 @@ const MyFolderPD = () => {
     }, [promptId]);
     
     // 폴더 목록 새로고침 함수
-    const refreshFolderSidebar = () => {
+    // 사용안해서 일단 주석처리 했습니다!!
+    {/*const refreshFolderSidebar = () => {
         setRefreshKey(prev => prev + 1);
-    };
+    };*/}
     
     // 폴더 데이터 가져오기
     useEffect(() => {
@@ -448,7 +449,8 @@ const MyFolderPD = () => {
         }
     };
 
-    const handleBookmarkClick = (type: 'prompt' | 'modifiedPrompt') => {
+    // 사용안해서 일단 주석처리 했습니다!!
+    {/*const handleBookmarkClick = (type: 'prompt' | 'modifiedPrompt') => {
         if (type === 'prompt') {
             setIsPromptBookmarked(prev => !prev);
         } else {
@@ -456,7 +458,7 @@ const MyFolderPD = () => {
         }
         setBookmarkType(type);
         setShowBookmarkModal(true);
-    };
+    };*/}
 
     const handleQuestionmarkMouseEnter = () => {
         setShowTooltip(true);

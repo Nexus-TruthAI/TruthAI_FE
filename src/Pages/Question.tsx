@@ -1,4 +1,3 @@
-import React from "react";
 import styled from "styled-components";
 import Background from "../Icons/BackgroundBasic.png";
 import Topbar from "../Components/Topbar";

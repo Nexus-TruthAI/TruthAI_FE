@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import styled from "styled-components";
 import Background from "../Icons/BackgroundLong.png"
 import Topbar from "../Components/Topbar";
@@ -288,8 +288,8 @@ const CrossCheckA = () => {
     const [showBookmarkModal, setShowBookmarkModal] = useState(false);
     const [selectedFolder, setSelectedFolder] = useState<PromptSidebarDetail | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [folders, setFolders] = useState<PromptSidebarDetail[]>([]);
-    const [promptDetail, setPromptDetail] = useState<PromptSidebarDetail | null>(null);
+    const [folders, _setFolders] = useState<PromptSidebarDetail[]>([]);
+    const [_promptDetail, setPromptDetail] = useState<PromptSidebarDetail | null>(null);
     
     // 각 AI별 북마크 상태
     const [bookmarkStates, setBookmarkStates] = useState({
