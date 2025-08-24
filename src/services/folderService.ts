@@ -129,6 +129,10 @@ export const getCrossCheckList = async (): Promise<OptimizedPrompt[]> => {
   try {
     console.log('crosscheck 결과 리스트 조회 API 요청 시작');
     
+    // 토큰 직접 가져오기
+    const token = sessionStorage.getItem("accessToken");
+    console.log('현재 토큰:', token ? '존재함' : '없음');
+    
     const response = await api.get('/prompt/crosscheck-list');
     
     console.log('성공:', response.data);

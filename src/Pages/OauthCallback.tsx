@@ -1,6 +1,7 @@
 import { useSearchParams, useNavigate} from "react-router-dom";
 import { useEffect } from "react";
 import styled from "styled-components";
+import Background from "../Icons/BackgroundBasic.png";
 
 import api from "../api";
 
@@ -12,6 +13,7 @@ const Wrapper = styled.div`
   justify-content: center;
   align-items: center;
   text-align: center;
+  background-image: url(${Background});
 `;
 
 const OAuthCallback = () => {
