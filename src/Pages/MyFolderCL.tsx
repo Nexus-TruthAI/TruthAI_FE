@@ -350,7 +350,6 @@ const MyFolderCL = () => {
     const [isCreating, setIsCreating] = useState(false);
     const { setFolderId } = usePrompt();
     const navigate = useNavigate();
-
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [crossCheckList, setCrossCheckList] = useState<OptimizedPrompt[]>([]);
@@ -424,11 +423,11 @@ const MyFolderCL = () => {
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('ko-KR', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
         });
     };
 

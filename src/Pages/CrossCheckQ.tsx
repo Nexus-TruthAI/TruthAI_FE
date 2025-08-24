@@ -515,7 +515,6 @@ const CrossCheckQ = () => {
                                     </div>
                                     Perplexity
                                 </Checkbox>
-
                             </ChoiceWrapper>
                         </PromptContainer>
                     </ContentWrapper>

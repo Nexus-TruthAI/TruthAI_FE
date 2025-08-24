@@ -53,6 +53,7 @@ const PromptItem = styled.div`
     text-overflow: ellipsis;
     text-align: left;
     width: 100%;
+    cursor: pointer;
 `;
 
 const NewBtn = styled.div`

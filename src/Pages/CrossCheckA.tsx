@@ -448,7 +448,6 @@ const CrossCheckA = () => {
             }));
             setShowBookmarkModal(false);
             setSelectedFolder(null);
-            alert(`${selectedFolder?.name}에 북마크가 저장되었습니다.`);
         }
     };
 

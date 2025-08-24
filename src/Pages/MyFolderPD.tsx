@@ -384,34 +384,6 @@ const MyFolderPD = () => {
         fetchFolders();
     }, [refreshKey]);
     
-    // 임시 데이터 (백엔드에서 받아올 예정) - 이제 사용하지 않음
-    const tempData = {
-        1: {
-            title: "인공지능 트렌드 요약",
-            modifiedPrompt: "최신 인공지능 기술 동향과 트렌드를 분석하여 요약해주세요. 특히 2024년에 주목받는 AI 기술과 향후 전망에 대해 자세히 설명해주세요.",
-            name: "AI 트렌드 요약해줘"
-        },
-        2: {
-            title: "빅데이터 분석 단계 설명",
-            modifiedPrompt: "빅데이터 분석의 전체 과정을 단계별로 상세히 설명해주세요. 데이터 수집부터 시각화까지 각 단계에서 필요한 도구와 방법론을 포함하여 설명해주세요.",
-            name: "빅데이터 분석 과정 설명해줘"
-        },
-        3: {
-            title: "머신러닝과 딥러닝 설명 및 차이점",
-            modifiedPrompt: "머신러닝과 딥러닝의 개념, 작동 원리, 그리고 두 기술의 차이점을 구체적인 예시와 함께 설명해주세요. 각각의 장단점과 활용 분야도 포함해주세요.",
-            name: "머신러닝 딥러닝 차이점 알려줘"
-        },
-        4: {
-            title: "자연어 처리 기술 동향",
-            modifiedPrompt: "최신 자연어 처리(NLP) 기술의 발전 동향과 주요 모델들을 분석해주세요. GPT, BERT 등의 대형 언어 모델의 특징과 활용 사례를 포함하여 설명해주세요.",
-            name: "NLP 기술 동향 알려줘"
-        },
-        5: {
-            title: "AI 윤리와 책임성",
-            modifiedPrompt: "인공지능 기술의 윤리적 문제와 책임성에 대해 깊이 있게 분석해주세요. 편향성, 투명성, 개인정보 보호 등의 이슈와 해결 방안을 제시해주세요.",
-            name: "AI 윤리 문제점 설명해줘"
-        }
-    };
     
     // optimizedPrompt에서 ```prompt와 끝의 ``` 제거하는 함수
     const parseOptimizedPrompt = (prompt: string) => {
@@ -562,9 +534,6 @@ const MyFolderPD = () => {
                                         {currentData.name}
                                     </ContentText>
                                         <IconContainer>
-                                            <IconButton onClick={() => handleBookmarkClick('prompt')}>
-                                                <img src={isPromptBookmarked ? BookmarkFillIcon : BookmarkIcon} alt="Bookmark" className="bookmark" />
-                                            </IconButton>
                                             <IconButton onClick={() => handleCopyClick(currentData.name)}>
                                                 <img src={CopyIcon} alt="Copy" className="copy" />
                                             </IconButton>
