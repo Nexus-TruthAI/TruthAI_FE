@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import Topbar from "../Components/Topbar";
 import FolderSidebar from "../Components/FolderSidebar";
@@ -344,7 +344,7 @@ const MyFolderCross = () => {
             try {
                 setLoading(true);
                 setError(null);
-                const data = await getFolderPrompts(folderId, 'crosscheck');
+                const data = await getFolderPrompts(folderId);
                 setCrossCheckList(data);
                 console.log('폴더 내 프롬프트 목록:', data);
             } catch (err) {

@@ -11,7 +11,7 @@ import BookmarkModal from "../Components/BookmarkModalCrossCheck";
 //import type { Folder } from "../Components/BookmarkModalCrossCheck";
 import type { LLMResponse } from "../services/llmService";
 import { usePrompt } from "../Context/PromptContext";
-import { getPromptSidebarDetail, type PromptSidebarDetail } from "../services/folderService";
+import { type Folder } from "../services/folderService";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -287,10 +287,8 @@ const CrossCheckA = () => {
     const [activeTab, setActiveTab] = useState('chatgpt');
     const [showModal, setShowModal] = useState(false);
     const [showBookmarkModal, setShowBookmarkModal] = useState(false);
-    const [selectedFolder, setSelectedFolder] = useState<any | null>(null);
+    const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [_folders, _setFolders] = useState<PromptSidebarDetail[]>([]);
-    const [_promptDetail, setPromptDetail] = useState<PromptSidebarDetail | null>(null);
     
     // 각 AI별 북마크 상태
     const [bookmarkStates, setBookmarkStates] = useState({
@@ -300,24 +298,7 @@ const CrossCheckA = () => {
         perplexity: false
     });
 
-    // 프롬프트 상세 정보 가져오기
-    useEffect(() => {
-        const fetchPromptDetail = async () => {
-            if (!promptId) return;
-            
-            try {
-                setIsLoading(true);
-                const detail = await getPromptSidebarDetail(promptId);
-                setPromptDetail(detail);
-            } catch (error) {
-                console.error('프롬프트 상세 정보 조회 실패:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
 
-        fetchPromptDetail();
-    }, [promptId]);
 
     // location.state가 변경될 때 activeTab 업데이트
     useEffect(() => {
