@@ -11,7 +11,7 @@ export const getFolders = async (folderType: 'prompt' | 'crosscheck'): Promise<F
     console.log('폴더 목록 조회 API 요청 시작');
     console.log('요청 URL:', `/folder/${folderType}`);
     
-    const response = await api.get(`/folder/${folderType}`);
+    const response = await api.get(`/folder/folderList/${folderType}`);
     
     console.log('폴더 목록 조회 성공:', response.data);
     

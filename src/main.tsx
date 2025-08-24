@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.tsx'
 import { BrowserRouter} from 'react-router-dom'
 
+import { AuthProvider } from "./Context/AuthContext";
 import { PromptProvider } from "./Context/PromptContext";
 
 // import FeatChoice from './Pages/FeatChoice.tsx'
@@ -27,10 +28,12 @@ import { PromptProvider } from "./Context/PromptContext";
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <PromptProvider>
-    <BrowserRouter>
-        <App/>
-    </BrowserRouter>
-    </PromptProvider>
+    <AuthProvider>
+      <PromptProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </PromptProvider>
+    </AuthProvider>
   </StrictMode>,
 )

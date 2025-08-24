@@ -79,7 +79,7 @@ const OptPrompt = styled.div`
   resize: none;
   color: #fff;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.5;
   box-shadow: 
       0 1px 1px rgba(0, 0, 0, 0.15),

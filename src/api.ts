@@ -5,6 +5,9 @@ import axios from "axios";
 // ✅ 개발용, 배포용 구분됨
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 // 요청 인터셉터: 액세스 토큰 자동 첨부

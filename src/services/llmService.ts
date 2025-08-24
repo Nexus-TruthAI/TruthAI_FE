@@ -17,7 +17,7 @@ import axios from 'axios';
 
 // API base URL 설정
 const api = axios.create({
-  baseURL: 'https://api.truthai.shop',
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },

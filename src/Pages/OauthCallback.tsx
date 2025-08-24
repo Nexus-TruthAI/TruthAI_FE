@@ -2,6 +2,7 @@ import { useSearchParams, useNavigate} from "react-router-dom";
 import { useEffect } from "react";
 import styled from "styled-components";
 
+import { useAuth } from "../Context/AuthContext";
 import api from "../api";
 
 
@@ -16,6 +17,7 @@ const Wrapper = styled.div`
 
 const OAuthCallback = () => {
   const [params] = useSearchParams();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const code = params.get("code"); // OAuth 콜백에서 받은 authorization code
@@ -60,6 +62,7 @@ const OAuthCallback = () => {
             }
           }
 
+          login(); // ✅ 상태 업데이트
           navigate("/mainpage");
         } else {
           console.warn("토큰 없음", res.data);
