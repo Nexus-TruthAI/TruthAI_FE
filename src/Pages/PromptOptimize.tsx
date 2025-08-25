@@ -420,7 +420,13 @@ const PromptOptimize = () => {
                         <>
                           <OptPrompt>
                             <ScrollArea>
-                              <ReactMarkdown children={prompt} />
+                              <ReactMarkdown
+                                children={prompt} 
+                                components={{
+                                  p: ({ children }) => <p style={{ fontFamily: 'SUIT' }}>{children}</p>,
+                                  code: ({ children }) => <code style={{ fontFamily: 'SUIT' }}>{children}</code>
+                                }}
+                              />
                             </ScrollArea>
                             <OptimizedBtnGroup>
                               <IconBtn

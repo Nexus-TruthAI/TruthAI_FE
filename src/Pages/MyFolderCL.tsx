@@ -9,6 +9,7 @@ import ArrowUp from "../Icons/ArrowUp.svg";
 import { createFolder, type OptimizedPrompt, getCrossCheckList } from "../services/folderService";
 import { usePrompt } from "../Context/PromptContext";
 import { useNavigate } from "react-router-dom";
+import api from "../api";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -413,6 +414,8 @@ const MyFolderCL = () => {
         fetchCrossCheckList();
     }, []);
 
+
+
     // 페이지네이션 계산
     const totalPages = Math.ceil(crossCheckList.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -563,9 +566,36 @@ const MyFolderCL = () => {
         }
     };
 
-    const handleItemClick = (promptId: number) => {
-        console.log('선택된 교차검증 ID:', promptId);
-        navigate(`/crosschecka/${promptId}`);
+    const handleItemClick = async (promptId: number) => {
+        try {
+            const res = await api.get("/prompt/side-bar/details", {
+                params: { promptId },
+            });
+            const detail = res.data;
+
+            if (detail.optimizedPrompt === null && detail.answerDto.length > 0) {
+                // 교차검증 완료 상태
+                const selectedAIs = detail.answerDto.map((a: { model: string }) => a.model.toLowerCase());
+                const responses = detail.answerDto.map((a: { model: string; content: string }) => ({
+                    llmModel: a.model,   // "GPT", "CLAUDE"
+                    answer: a.content    // 실제 답변 내용
+                }));
+                
+                
+                navigate('/crosschecka', {
+                    state: {
+                        selectedAIs,
+                        promptText: detail.originalPrompt,
+                        responses,
+                        promptId: promptId
+                    }
+                });
+            } else {
+                console.warn("알 수 없는 상태", detail);
+            }
+        } catch (err) {
+            console.error("교차검증 상세 조회 실패", err);
+        }
     };
 
     return (
@@ -595,7 +625,7 @@ const MyFolderCL = () => {
                                         AI 교차검증
                                         <SortIcon><img src={ArrowUp} alt="" /></SortIcon>
                                     </DropdownItemFirst>
-                                    <DropdownItemSecond onClick={() => {}}>
+                                    <DropdownItemSecond onClick={() => {navigate('/myfolderpl')}}>
                                         프롬프트
                                     </DropdownItemSecond>
                                 </DropdownMenu>
