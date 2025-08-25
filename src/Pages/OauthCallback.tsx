@@ -1,26 +1,37 @@
 import { useSearchParams, useNavigate} from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import Background from "../Icons/BackgroundBasic.png";
 
 import { useAuth } from "../Context/AuthContext";
 import api from "../api";
 
+import LoadingOverlay from "../Components/LoadingOverlay";
 
 const Wrapper = styled.div`
   width: 100vw;
   height: 100vh;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
   background-image: url(${Background});
 `;
 
+const MainText = styled.div`
+    font-size: 36px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 2rem;
+`
+
+
 const OAuthCallback = () => {
   const [params] = useSearchParams();
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
 
   const code = params.get("code"); // OAuth 콜백에서 받은 authorization code
   console.log("OAuth 콜백에서 받은 code:", code);
@@ -31,6 +42,7 @@ const OAuthCallback = () => {
     const fetchLogin = async () => {
       try {
         console.log("로그인 요청 중...");
+        setIsLoading(true);
 
         // 인가 코드 POST로 요청
         const res = await api.post('/auth/login', {
@@ -65,12 +77,15 @@ const OAuthCallback = () => {
           }
 
           login(); // ✅ 상태 업데이트
+          setIsLoading(false);
           navigate("/mainpage");
         } else {
           console.warn("토큰 없음", res.data);
+          setIsLoading(false);
         }
       } catch (error) {
         console.error("❌ 로그인 실패", error);
+        setIsLoading(false);
       }
     };
 
@@ -79,7 +94,8 @@ const OAuthCallback = () => {
 
   return (
     <Wrapper>
-      <p>로그인 처리 중... API 수정 필요!!</p>
+      <MainText>로딩중...</MainText>
+      <LoadingOverlay done={!isLoading} />
     </Wrapper>
   );
 };
