@@ -286,6 +286,7 @@ const FactCheck = () => {
   //const [results, setResults] = useState<any>({}); // gpt, claude, gemini ...
 
   const [results, setResults] = useState<Partial<Record<AIKey, AIResult>>>({});
+  const [isLoading, setIsLoading] = useState(true); // 로딩 상태 추가
   const selectedAIs: AIKey[] = location.state?.selectedAIs || [];
   const [activeTab, setActiveTab] = useState<AIKey>(selectedAIs[0]);
   
@@ -327,6 +328,9 @@ const getSimilarityColor = (similarity: number) => {
     const fetchCrossCheck = async () => {
       try {
         if (!promptId) return;
+        
+        setIsLoading(true); // 로딩 시작
+        
         const res = await api.post<CrossCheckResponse>(`/crosscheck/${promptId}`);
         const data = res.data;
 
@@ -338,8 +342,13 @@ const getSimilarityColor = (similarity: number) => {
           gemini: data.gemini,
           perplexity: data.perplexity,
         });
+        
+        // summary는 받아오지만 사용하지 않음 (백엔드 호환성을 위해)
+        // console.log('Received data:', data);
       } catch (err) {
         console.error("교차검증 API 호출 실패", err);
+      } finally {
+        setIsLoading(false); // 로딩 완료
       }
     };
 
@@ -404,7 +413,7 @@ const getSimilarityColor = (similarity: number) => {
         <Sidebar/>
         <MainWrapper>
           <SubText>{coreTitle}</SubText>
-          <MainText>환각 여부를 확인해보세요.</MainText>
+          <MainText>{isLoading ? "로딩중..." : "환각 여부를 확인해보세요."}</MainText>
           <CoreStatementWrapper>
             <CoreTitle>공통된 종합 주장</CoreTitle>
             <IconBtn src={CopyIcon} onClick={handleCopy}/>

@@ -90,10 +90,21 @@ const Sidebar = () => {
     React.useEffect(() => {
         const fetchSidebarPrompts = async () => {
         try {
+            console.log('🔄 사이드바 데이터 로딩 시작');
+            
             const res = await api.get("/prompt/side-bar/list");
+            console.log('✅ 프롬프트 리스트 응답:', res.data);
+            console.log('📊 프롬프트 개수:', res.data?.length || 0);
+            
             const crossRes = await api.get("/crosscheck/side-bar/list");
+            console.log('✅ 교차검증 리스트 응답:', crossRes.data);
+            console.log('📊 교차검증 개수:', crossRes.data?.length || 0);
+            
             setPromptList(res.data || []);
             setCrossCheckList(crossRes.data || []);
+            
+            console.log('📋 설정된 프롬프트 리스트:', res.data || []);
+            console.log('📋 설정된 교차검증 리스트:', crossRes.data || []);
         } catch (err) {
             console.error("사이드바 조회 실패", err);
         }
@@ -136,11 +147,24 @@ const Sidebar = () => {
 
         setPromptId(promptId);
 
-        if (detail.optimizedPrompt && detail.answerDto.length === 0) {
-            // 프롬프트 최적화만 된 상태
-            navigate(`/promptopt/${promptId}`, { state: detail });
-        } else if (detail.optimizedPrompt === null && detail.answerDto.length > 0) {
-            // 교차검증 완료 상태
+        // 프롬프트 섹션에서 클릭한 경우 - PromptOptimize로 이동
+        navigate(`/promptopt/${promptId}`, { state: detail });
+    } catch (err) {
+        console.error("프롬프트 상세 조회 실패", err);
+    }
+    };
+
+    const handleCrossCheckClick = async (promptId: number) => {
+    try {
+        const res = await api.get("/prompt/side-bar/details", {
+        params: { promptId },
+        });
+        const detail = res.data; 
+
+        setPromptId(promptId);
+
+        if (detail.answerDto && detail.answerDto.length > 0) {
+            // 답변이 있는 경우 - CrossCheckA로 이동
             const selectedAIs = detail.answerDto.map((a: any) => a.model.toLowerCase());
             const responses = detail.answerDto.map((a: any) => ({
                 llmModel: a.model,   // "GPT", "CLAUDE"
@@ -155,10 +179,11 @@ const Sidebar = () => {
                 }
             });
         } else {
-        console.warn("알 수 없는 상태", detail);
+            // 답변이 없는 경우 - PromptOptimize로 이동
+            navigate(`/promptopt/${promptId}`, { state: detail });
         }
     } catch (err) {
-        console.error("프롬프트 상세 조회 실패", err);
+        console.error("교차검증 상세 조회 실패", err);
     }
     };
 
@@ -191,7 +216,7 @@ const Sidebar = () => {
                     <PromptList>
                         {crossCheckList.map((item) => (
                             <PromptItem key={item.promptId}
-                            onClick={() => handlePromptClick(item.promptId)}
+                            onClick={() => handleCrossCheckClick(item.promptId)}
                             >{item.summary}</PromptItem>
                         ))}
                     </PromptList>

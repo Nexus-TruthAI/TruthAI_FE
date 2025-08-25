@@ -136,3 +136,93 @@ export const getLLMAnswers = async (request: LLMRequest): Promise<LLMAPIResponse
     throw error;
   }
 };
+
+// 최적화된 프롬프트로 LLM 응답 생성
+export const getOptimizedPromptResponse = async (
+    promptId: number,
+    models: string[],
+    question: string,
+    persona?: string,
+    promptDomain: string = 'POLITICS'
+): Promise<Record<string, { answer: { id: number; model: string; content: string }; sources: Array<{ id: number; sourceUrl: string; sourceTitle: string }> }>> => {
+    try {
+        // 입력 데이터 유효성 검사
+        if (!promptId || typeof promptId !== 'number') {
+            throw new Error(`Invalid promptId: ${promptId}`);
+        }
+        
+        if (!models || !Array.isArray(models) || models.length === 0) {
+            throw new Error(`Invalid models: ${JSON.stringify(models)}`);
+        }
+        
+        if (!question || typeof question !== 'string' || question.trim() === '') {
+            throw new Error(`Invalid question: ${question}`);
+        }
+        
+        const request = {
+            models,
+            question: question.trim(),
+            persona: persona || '',
+            promptDomain,
+            templateKey: 'optimized'
+        };
+
+        console.log('🚀 최적화 프롬프트 요청 시작');
+        console.log('📋 요청 URL:', `/prompt/get-best/organized?promptId=${promptId}`);
+        console.log('📤 요청 데이터:', JSON.stringify(request, null, 2));
+        console.log('🔧 요청 헤더:', { 'Content-Type': 'application/json' });
+
+        const response = await api.post(`/prompt/get-best/organized?promptId=${promptId}`, request, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            timeout: 30000, // 30초 타임아웃
+        });
+        
+        console.log('✅ 최적화 프롬프트 응답 성공');
+        console.log('📊 응답 상태:', response.status);
+        console.log('📋 응답 데이터:', response.data);
+        
+        // 응답 데이터 유효성 검사
+        if (!response.data) {
+            throw new Error('Empty response from server');
+        }
+        
+        return response.data;
+    } catch (error) {
+        console.error('❌ 최적화 프롬프트 응답 실패');
+        
+        // Axios 에러인 경우 더 자세한 정보 출력
+        if (axios.isAxiosError(error)) {
+            console.error('📊 HTTP 상태 코드:', error.response?.status);
+            console.error('📋 응답 데이터:', error.response?.data);
+            console.error('🔧 응답 헤더:', error.response?.headers);
+            console.error('🌐 요청 URL:', error.config?.url);
+            console.error('📤 요청 메서드:', error.config?.method);
+            console.error('📋 요청 데이터:', error.config?.data);
+            
+            // 백엔드 에러 메시지가 있는 경우 출력
+            if (error.response?.data && typeof error.response.data === 'object') {
+                const errorData = error.response.data as Record<string, unknown>;
+                if (errorData.message) {
+                    console.error('🚨 백엔드 에러 메시지:', errorData.message);
+                }
+                if (errorData.error) {
+                    console.error('🚨 백엔드 에러:', errorData.error);
+                }
+            }
+            
+            // HTTP 상태 코드별 에러 분석
+            if (error.response?.status === 500) {
+                console.error('🚨 백엔드 서버 내부 오류 (500)');
+                console.error('💡 백엔드 서버 로그를 확인해주세요.');
+                console.error('💡 요청 데이터 형식이 올바른지 확인해주세요.');
+                console.error('💡 promptId가 유효한지 확인해주세요.');
+            }
+        } else {
+            console.error('❌ 기타 에러:', error);
+        }
+        
+        throw error;
+    }
+};

@@ -4,7 +4,7 @@ import Background from "../Icons/BackgroundBasic.png"
 import Topbar from "../Components/Topbar";
 import Sidebar from "../Components/Sidebar";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getLLMAnswers } from "../services/llmService";
+import { getLLMAnswers, getOptimizedPromptResponse } from "../services/llmService";
 import { usePrompt } from "../Context/PromptContext";
 
 const Wrapper = styled.div`
@@ -89,38 +89,119 @@ const CrossCheckL = () => {
     useEffect(() => {
         const fetchAnswers = async () => {
             try {
-                const { request } = location.state || {};
+                const { request, isLoading, promptId, persona, selectedAIs, promptText } = location.state || {};
                 
-                if (!request) {
-                    console.error('No request data found');
+                // 최적화된 프롬프트가 있는 경우 (PromptOptimize에서 넘어온 경우)
+                if (isLoading && promptId && promptText) {
+                    console.log('🔄 최적화된 프롬프트로 LLM 응답 요청:', {
+                        promptId, models: selectedAIs, question: promptText, persona
+                    });
+                    
+                    // 데이터 유효성 검사
+                    if (!selectedAIs || selectedAIs.length === 0) {
+                        console.error('❌ 선택된 AI가 없습니다');
+                        throw new Error('AI를 선택해주세요');
+                    }
+                    
+                    if (!promptId || typeof promptId !== 'number') {
+                        console.error('❌ 유효하지 않은 promptId:', promptId);
+                        throw new Error('유효하지 않은 프롬프트 ID입니다');
+                    }
+                    
+                    if (!promptText || promptText.trim() === '') {
+                        console.error('❌ 유효하지 않은 프롬프트 텍스트:', promptText);
+                        throw new Error('프롬프트 텍스트가 비어있습니다');
+                    }
+                    
+                    console.log('✅ 데이터 유효성 검사 통과');
+                    
+                    // 모델명 매핑
+                    const modelMapping: { [key: string]: string } = {
+                        'chatgpt': 'gpt',
+                        'claude': 'claude',
+                        'gemini': 'gemini',
+                        'perplexity': 'perplexity'
+                    };
+                    
+                    const mappedModels = selectedAIs.map((ai: string) => modelMapping[ai] || ai);
+                    console.log('🔧 매핑된 모델명:', mappedModels);
+                    
+                    // API 요청 데이터 로깅
+                    const apiRequestData = {
+                        promptId,
+                        models: mappedModels,
+                        question: promptText,
+                        persona: persona || '',
+                        promptDomain: 'POLITICS',
+                        templateKey: 'optimized'
+                    };
+                    console.log('📤 API 요청 데이터:', JSON.stringify(apiRequestData, null, 2));
+                    
+                    // 최적화된 프롬프트 API 호출
+                    const apiResponse = await getOptimizedPromptResponse(
+                        promptId,
+                        mappedModels,
+                        promptText,
+                        persona
+                    );
+                    
+                    console.log('✅ 최적화된 프롬프트 API 응답 완료:', apiResponse);
+                    
+                    // 응답 데이터를 CrossCheckA 형식에 맞게 변환
+                    const responseData = Array.isArray(apiResponse) ? apiResponse[0] : apiResponse;
+                    const responses = Object.values(responseData).map((data: any) => ({
+                        llmModel: data.answer.model,
+                        answer: data.answer.content
+                    }));
+                    
+                    console.log('📝 변환된 응답 데이터:', responses);
+                    
+                    // 로딩 완료 후 CrossCheckA로 이동
+                    setLoadingProgress(100);
+                    setPromptId(promptId);
+                    setTimeout(() => {
+                        navigate('/crosschecka', { 
+                            state: { 
+                                selectedAIs: mappedModels,
+                                promptText: promptText,
+                                responses,
+                                promptId: promptId
+                            } 
+                        });
+                    }, 800);
+                    
+                } else if (request) {
+                    // 기존 로직 (일반 프롬프트)
+                    console.log('🔄 API 호출 시작 - 선택된 AI:', request.models);
+                    
+                    // API 호출 시작
+                    const apiResponse = await getLLMAnswers(request);
+                    
+                    console.log('✅ API 응답 완료:', apiResponse);
+                    
+                    // llmAnswerDto 배열 추출
+                    const responses = apiResponse.llmAnswerDto || [];
+                    console.log('📝 추출된 답변 데이터:', responses);
+                    
+                    // 로딩 완료 후 CrossCheckA로 이동
+                    setLoadingProgress(100); // 100%로 완료
+                    setPromptId(apiResponse.promptId); // promptId를 컨텍스트에 저장
+                    setTimeout(() => {
+                        navigate('/crosschecka', { 
+                            state: { 
+                                selectedAIs: location.state?.selectedAIs || [],
+                                promptText: location.state?.promptText || '',
+                                responses,
+                                promptId: apiResponse.promptId // promptId도 함께 전달
+                            } 
+                        });
+                    }, 800); // 로딩 바가 100%까지 완료되는 것을 보여주기 위해 약간 더 지연
+                    
+                } else {
+                    console.error('No valid request data found');
                     navigate('/crosscheckq');
                     return;
                 }
-
-                console.log('🔄 API 호출 시작 - 선택된 AI:', request.models);
-                
-                // API 호출 시작
-                const apiResponse = await getLLMAnswers(request);
-                
-                console.log('✅ API 응답 완료:', apiResponse);
-                
-                // llmAnswerDto 배열 추출
-                const responses = apiResponse.llmAnswerDto || [];
-                console.log('📝 추출된 답변 데이터:', responses);
-                
-                // 로딩 완료 후 CrossCheckA로 이동
-                setLoadingProgress(100); // 100%로 완료
-                setPromptId(apiResponse.promptId); // promptId를 컨텍스트에 저장
-                setTimeout(() => {
-                    navigate('/crosschecka', { 
-                        state: { 
-                            selectedAIs: location.state?.selectedAIs || [],
-                            promptText: location.state?.promptText || '',
-                            responses,
-                            promptId: apiResponse.promptId // promptId도 함께 전달
-                        } 
-                    });
-                }, 800); // 로딩 바가 100%까지 완료되는 것을 보여주기 위해 약간 더 지연
                 
             } catch (error) {
                 console.error('Error fetching LLM answers:', error);

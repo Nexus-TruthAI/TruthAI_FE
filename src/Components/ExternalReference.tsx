@@ -96,7 +96,9 @@ const ExternalReference = ({ activeTab, aiReferences }: ExternalReferenceProps) 
           <ExternalIcon src={ExRefoIcon} alt="External Reference Icon" />
           <ContentText>
             <Title>{`Source ${idx + 1}: ${ref.title}`}</Title>
-            <Summary>{`Summary: ${ref.summary}`}</Summary>
+            {ref.summary && ref.summary !== 'null' && ref.summary.trim() !== '' && (
+              <Summary>{`Summary: ${ref.summary}`}</Summary>
+            )}
           </ContentText>
           <ArrowIcon src={ArrowRightIcon} alt="Arrow Right Icon" />
         </ContentArea>
