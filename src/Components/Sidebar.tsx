@@ -80,7 +80,7 @@ const Sidebar = () => {
     //const [prompts, setPrompts] = useState<{promptId: number, summary: string}[]>([]);
     const { setPromptId } = usePrompt();
     const [promptList, setPromptList] = useState<{promptId: number, summary: string}[]>([]);
-    //const [crossCheckList, setCrossCheckList] = useState<{promptId: number, summary: string}[]>([]);
+    const [crossCheckList, setCrossCheckList] = useState<{promptId: number, summary: string}[]>([]);
 
 
     // Todo:
@@ -91,17 +91,19 @@ const Sidebar = () => {
         const fetchSidebarPrompts = async () => {
         try {
             const res = await api.get("/prompt/side-bar/list");
+            const crossRes = await api.get("/crosscheck/side-bar/list");
             setPromptList(res.data || []);
+            setCrossCheckList(crossRes.data || []);
         } catch (err) {
             console.error("사이드바 조회 실패", err);
         }
         };
 
         fetchSidebarPrompts();
-    }, [setPromptList]);
+    }, [setPromptList, setCrossCheckList]);
 
     // 상세 조회 후 페이지 이동
-    const handlePromptClick = async (promptId: number) => {
+    /*const handlePromptClick = async (promptId: number) => {
         try {
         const res = await api.get("/prompt/side-bar/details", {
             params: { promptId },
@@ -123,6 +125,41 @@ const Sidebar = () => {
         } catch (err) {
         console.error("프롬프트 상세 조회 실패", err);
         }
+    };*/
+    
+    const handlePromptClick = async (promptId: number) => {
+    try {
+        const res = await api.get("/prompt/side-bar/details", {
+        params: { promptId },
+        });
+        const detail = res.data; 
+
+        setPromptId(promptId);
+
+        if (detail.optimizedPrompt && detail.answerDto.length === 0) {
+            // 프롬프트 최적화만 된 상태
+            navigate(`/promptopt/${promptId}`, { state: detail });
+        } else if (detail.optimizedPrompt === null && detail.answerDto.length > 0) {
+            // 교차검증 완료 상태
+            const selectedAIs = detail.answerDto.map((a: any) => a.model.toLowerCase());
+            const responses = detail.answerDto.map((a: any) => ({
+                llmModel: a.model,   // "GPT", "CLAUDE"
+                answer: a.content    // 실제 답변 내용
+            }));
+            navigate('/crosschecka', {
+                state: {
+                    selectedAIs,
+                    promptText: detail.originalPrompt,
+                    responses,
+                    promptId: promptId
+                }
+            });
+        } else {
+        console.warn("알 수 없는 상태", detail);
+        }
+    } catch (err) {
+        console.error("프롬프트 상세 조회 실패", err);
+    }
     };
 
 
@@ -152,8 +189,10 @@ const Sidebar = () => {
                 <TitleText>교차검증</TitleText>
                 <PromptListContainer>
                     <PromptList>
-                        {promptList.map((item) => (
-                            <PromptItem key={item.promptId}>{item.summary}</PromptItem>
+                        {crossCheckList.map((item) => (
+                            <PromptItem key={item.promptId}
+                            onClick={() => handlePromptClick(item.promptId)}
+                            >{item.summary}</PromptItem>
                         ))}
                     </PromptList>
                 </PromptListContainer>

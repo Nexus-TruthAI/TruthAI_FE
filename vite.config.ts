@@ -26,6 +26,16 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/persona': {
+        target: 'https://api.truthai.shop',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/crosscheck':{
+        target: 'https://api.truthai.shop',
+        changeOrigin: true,
+        secure: false,
+      }
     }
   }
 })

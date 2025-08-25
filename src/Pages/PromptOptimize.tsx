@@ -79,7 +79,7 @@ const OptPrompt = styled.div`
   resize: none;
   color: #fff;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.5;
   box-shadow: 
       0 1px 1px rgba(0, 0, 0, 0.15),
@@ -234,7 +234,16 @@ const PromptOptimize = () => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
 
-  
+  React.useEffect(() => {
+    const token = sessionStorage.getItem("accessToken");
+    console.log("PromptOptimize - accessToken:", token);
+
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      navigate("/login");
+    }
+  }, [navigate]);
+
   // ✅ reset이면 로컬 상태 + context promptId 초기화
   React.useEffect(() => {
     if (reset) {
@@ -372,13 +381,14 @@ const PromptOptimize = () => {
     }
   };
 
+  {/* 초기화 효과 맨 위랑 겹쳐서 일단 주석처리..
   React.useEffect(() => {
     if (location.state?.reset) {
       setPrompt("");
       setIsOptimized(false);
       setOriginalPrompt("");
     }
-  }, [location.key]);
+  }, [location.key]);*/}
 
   // 📂 폴더 데이터 불러오기
   React.useEffect(() => {
@@ -410,7 +420,13 @@ const PromptOptimize = () => {
                         <>
                           <OptPrompt>
                             <ScrollArea>
-                              <ReactMarkdown children={prompt} />
+                              <ReactMarkdown
+                                children={prompt} 
+                                components={{
+                                  p: ({ children }) => <p style={{ fontFamily: 'SUIT' }}>{children}</p>,
+                                  code: ({ children }) => <code style={{ fontFamily: 'SUIT' }}>{children}</code>
+                                }}
+                              />
                             </ScrollArea>
                             <OptimizedBtnGroup>
                               <IconBtn

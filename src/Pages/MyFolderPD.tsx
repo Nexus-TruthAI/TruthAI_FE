@@ -9,7 +9,7 @@ import { useParams } from "react-router-dom";
 import CopyIcon from "../Icons/Copy.svg";
 import Questionmark from "../Icons/QuestionMark.png";
 //import BookmarkModal from "../Components/BookmarkModal";
-import { getFolders, type Folder, getPromptDetail, type PromptDetail } from "../services/folderService";
+import { getPromptDetail, type PromptDetail } from "../services/folderService";
 import { usePrompt } from "../Context/PromptContext";
 
 const Wrapper = styled.div`
@@ -212,15 +212,17 @@ const ContentText = styled.div`
     font-weight: 600;
     line-height: 1.6;
     white-space: pre-line;
-    padding-bottom: 3rem;
+    padding-bottom: 1rem;
 `
 
 const IconContainer = styled.div`
-    position: absolute;
-    bottom: 1rem;
+    position: sticky;
+    float: right;
+    bottom: 0.5rem;
     right: 1rem;
     display: flex;
     gap: 0.75rem;
+    z-index: 1000;
 `
 
 const IconButton = styled.button`
@@ -326,14 +328,8 @@ const TooltipContainer = styled.div`
 const MyFolderPD = () => {
     const [showModal, setShowModal] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
-    const [_isPromptBookmarked, _setIsPromptBookmarked] = useState(false);
-    const [_isModifiedPromptBookmarked, _setIsModifiedPromptBookmarked] = useState(false);
     const [showTooltip, setShowTooltip] = useState(false);
-    const [_showBookmarkModal, _setShowBookmarkModal] = useState(false);
-    const [_bookmarkType, _setBookmarkType] = useState<'prompt' | 'modifiedPrompt' | null>(null);
-    const [_selectedFolder, _setSelectedFolder] = useState<Folder | null>(null);
-    const [_folders, setFolders] = useState<Folder[]>([]);
-    const [refreshKey, _setRefreshKey] = useState(0);
+
     const [promptDetail, setPromptDetail] = useState<PromptDetail | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -371,19 +367,7 @@ const MyFolderPD = () => {
         setRefreshKey(prev => prev + 1);
     };*/}
     
-    // 폴더 데이터 가져오기
-    useEffect(() => {
-        const fetchFolders = async () => {
-            try {
-                const folderData = await getFolders('prompt');
-                setFolders(folderData);
-            } catch (error) {
-                console.error('폴더 목록 조회 실패:', error);
-            }
-        };
-        
-        fetchFolders();
-    }, [refreshKey]);
+
     
     
     // optimizedPrompt에서 ```prompt와 끝의 ``` 제거하는 함수
@@ -448,17 +432,6 @@ const MyFolderPD = () => {
             }
         }
     };
-
-    // 사용안해서 일단 주석처리 했습니다!!
-    {/*const handleBookmarkClick = (type: 'prompt' | 'modifiedPrompt') => {
-        if (type === 'prompt') {
-            setIsPromptBookmarked(prev => !prev);
-        } else {
-            setIsModifiedPromptBookmarked(prev => !prev);
-        }
-        setBookmarkType(type);
-        setShowBookmarkModal(true);
-    };*/}
 
     const handleQuestionmarkMouseEnter = () => {
         setShowTooltip(true);

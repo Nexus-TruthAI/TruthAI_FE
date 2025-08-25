@@ -1,5 +1,8 @@
 import React from "react";
 import styled from "styled-components";
+
+import { useAuth } from "../Context/AuthContext";
+
 import Background from "../Icons/BackgroundBasic.png";
 import Topbar from "../Components/Topbar";
 import RoundArrowBtn from "../Components/RoundArrowBtn";
@@ -267,6 +270,8 @@ interface JwtPayload {
 
 
 const MyPage = () => {
+    const { logout } = useAuth();
+
     const [profileImage, setProfileImage] = React.useState<string | null>(null);
     const [showModal, setShowModal] = React.useState(false);
     const [showProfileEditModal, setShowProfileEditModal] = React.useState(false);
@@ -298,7 +303,7 @@ const MyPage = () => {
     const handleProfileEditConfirm = async () => {
         try {
             // 1. 백엔드 API 요청
-            const res = await api.post("/auth/persona", {
+            const res = await api.post("/persona", {
                 persona: userInfo || "AI가 필요한 사람",
             });
 
@@ -331,10 +336,9 @@ const MyPage = () => {
         try {
             await api.post("/auth/logout");
             // 클라이언트 측 토큰 제거
-            sessionStorage.removeItem("accessToken");
-            sessionStorage.removeItem("refreshToken");
+            logout();
             // 메인페이지나 로그인 페이지로 이동
-            navigate("/login");
+            navigate("/mainpage");
         } catch (error) {
             console.error("로그아웃 실패", error);
         }
@@ -342,51 +346,42 @@ const MyPage = () => {
 
 
     React.useEffect(() => {
-        const token = sessionStorage.getItem("accessToken");
+        const fetchUserInfo = async () => {
+            const token = sessionStorage.getItem("accessToken");
+            console.log("MyPage - accessToken:", token);
 
-        if (!token) {
-        alert("로그인이 필요합니다.");
-        navigate("/login");
-        return;
-        }
-
-        try {
-            const decoded = jwtDecode<JwtPayload>(token);
-            const now = Math.floor(Date.now() / 1000);
-
-            if (decoded.exp < now) {
-                // 🔹 토큰 만료
-                alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-                sessionStorage.removeItem("accessToken");
+            if (!token) {
+                alert("로그인이 필요합니다.");
                 navigate("/login");
-            } else {
-                // 🔹 토큰 유효
-                console.log("토큰 유효:", token);
+                return;
+            }
 
-                // 유저 정보 세팅
+            try {
+                const decoded = jwtDecode<JwtPayload>(token);
+                const now = Math.floor(Date.now() / 1000);
+                if (decoded.exp < now) {
+                    alert("세션 만료");
+                    sessionStorage.removeItem("accessToken");
+                    navigate("/login");
+                    return;
+                }
+
                 setUserName(decoded.username);
                 setEmail(decoded.email);
 
                 // persona 가져오기
-                api.get("/auth/persona")
-                    .then(res => {
-                    setPersona(res.data.persona);
-                    })
-                    .catch(err => {
-                    console.error("페르소나 불러오기 실패:", err);
-                    });
-                
-                // 사용자 프로필 이미지 가져오기
-                const savedImage = localStorage.getItem('profileImage');
-                    if (savedImage) {
-                        setProfileImage(savedImage);
-                    }
-            }
+                const res = await api.get("/persona");
+                setPersona(res.data.persona);
+
+                // 프로필 이미지
+                const savedImage = localStorage.getItem("profileImage");
+                if (savedImage) setProfileImage(savedImage);
             } catch (err) {
-            console.error("토큰 decode 실패:", err);
-            sessionStorage.removeItem("accessToken");
-            navigate("/login");
-        }
+                console.error("유저정보 불러오기 실패:", err);
+            }
+        };
+
+        fetchUserInfo();
     }, []);
 
     return (
