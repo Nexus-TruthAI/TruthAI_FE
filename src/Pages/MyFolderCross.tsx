@@ -7,6 +7,8 @@ import NewBtn from "../Components/NewBtn";
 import ArrowDown from "../Icons/ArrowDown.svg";
 import { createFolder, type FolderPrompt, getFolderPrompts, getFolders, type Folder } from "../services/folderService";
 import { usePrompt } from "../Context/PromptContext";
+import { useNavigate } from "react-router-dom";
+import api from "../api";
 
 const Wrapper = styled.div`
     margin: 0;
@@ -304,6 +306,7 @@ const MyFolderCross = () => {
     const [selectedFolderType, setSelectedFolderType] = useState<'prompt' | 'crosscheck'>('crosscheck');
     const [isCreating, setIsCreating] = useState(false);
     const { folderId, setFolderId } = usePrompt();
+    const navigate = useNavigate();
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -411,10 +414,43 @@ const MyFolderCross = () => {
         }
     };
 
-    const handleItemClick = (crossCheckId: number) => {
-        // 교차검증 아이템 클릭 시 처리 로직
-        console.log('선택된 교차검증 ID:', crossCheckId);
-        // navigate(`/crosscheck/${crossCheckId}`);
+    const handleItemClick = async (promptId: number) => {
+        try {
+            const res = await api.get("/prompt/side-bar/details", {
+                params: { promptId },
+            });
+            const detail = res.data;
+
+            // 데이터 상태 로깅
+            console.log("교차검증 상세 데이터:", detail);
+            console.log("optimizedPrompt:", detail.optimizedPrompt);
+            console.log("answerDto:", detail.answerDto);
+            
+            // answerDto가 있고 내용이 있으면 CrossCheckA로 이동 (Sidebar와 동일한 방식)
+            if (detail.answerDto && detail.answerDto.length > 0) {
+                // 실제 사용된 AI 모델들을 selectedAIs에 포함 (환각여부 검증을 위해)
+                const selectedAIs = detail.answerDto.map((a: { model: string }) => a.model.toLowerCase());
+                const responses = detail.answerDto.map((a: { model: string; content: string }) => ({
+                    llmModel: a.model,   // "GPT", "CLAUDE"
+                    answer: a.content    // 실제 답변 내용
+                }));
+                
+                // Sidebar와 동일한 방식으로 CrossCheckA로 이동
+                navigate('/crosschecka', {
+                    state: {
+                        selectedAIs,
+                        promptText: detail.originalPrompt,
+                        responses,
+                        promptId: promptId
+                    }
+                });
+            } else {
+                console.warn("답변 데이터가 없습니다", detail);
+                alert("답변 데이터가 없어 환각여부 검증을 할 수 없습니다.");
+            }
+        } catch (err) {
+            console.error("교차검증 상세 조회 실패", err);
+        }
     };
 
     return (

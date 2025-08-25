@@ -212,15 +212,17 @@ const ContentText = styled.div`
     font-weight: 600;
     line-height: 1.6;
     white-space: pre-line;
-    padding-bottom: 3rem;
+    padding-bottom: 1rem;
 `
 
 const IconContainer = styled.div`
-    position: absolute;
-    bottom: 1rem;
+    position: sticky;
+    float: right;
+    bottom: 0.5rem;
     right: 1rem;
     display: flex;
     gap: 0.75rem;
+    z-index: 1000;
 `
 
 const IconButton = styled.button`
