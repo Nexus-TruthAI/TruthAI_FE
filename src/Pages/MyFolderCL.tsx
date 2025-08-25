@@ -573,14 +573,13 @@ const MyFolderCL = () => {
             });
             const detail = res.data;
 
-            if (detail.optimizedPrompt === null && detail.answerDto.length > 0) {
-                // 교차검증 완료 상태
+            if (detail.answerDto && detail.answerDto.length > 0) {
+                // 답변이 있는 경우 - CrossCheckA로 이동
                 const selectedAIs = detail.answerDto.map((a: { model: string }) => a.model.toLowerCase());
                 const responses = detail.answerDto.map((a: { model: string; content: string }) => ({
                     llmModel: a.model,   // "GPT", "CLAUDE"
                     answer: a.content    // 실제 답변 내용
                 }));
-                
                 
                 navigate('/crosschecka', {
                     state: {
@@ -591,7 +590,8 @@ const MyFolderCL = () => {
                     }
                 });
             } else {
-                console.warn("알 수 없는 상태", detail);
+                // 답변이 없는 경우 - PromptOptimize로 이동
+                navigate(`/promptopt/${promptId}`, { state: detail });
             }
         } catch (err) {
             console.error("교차검증 상세 조회 실패", err);

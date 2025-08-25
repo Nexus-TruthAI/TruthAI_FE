@@ -421,21 +421,18 @@ const MyFolderCross = () => {
             });
             const detail = res.data;
 
-            // 데이터 상태 로깅
             console.log("교차검증 상세 데이터:", detail);
             console.log("optimizedPrompt:", detail.optimizedPrompt);
             console.log("answerDto:", detail.answerDto);
             
-            // answerDto가 있고 내용이 있으면 CrossCheckA로 이동 (Sidebar와 동일한 방식)
             if (detail.answerDto && detail.answerDto.length > 0) {
-                // 실제 사용된 AI 모델들을 selectedAIs에 포함 (환각여부 검증을 위해)
+                // 답변이 있는 경우 - CrossCheckA로 이동
                 const selectedAIs = detail.answerDto.map((a: { model: string }) => a.model.toLowerCase());
                 const responses = detail.answerDto.map((a: { model: string; content: string }) => ({
                     llmModel: a.model,   // "GPT", "CLAUDE"
                     answer: a.content    // 실제 답변 내용
                 }));
                 
-                // Sidebar와 동일한 방식으로 CrossCheckA로 이동
                 navigate('/crosschecka', {
                     state: {
                         selectedAIs,
@@ -446,7 +443,8 @@ const MyFolderCross = () => {
                 });
             } else {
                 console.warn("답변 데이터가 없습니다", detail);
-                alert("답변 데이터가 없어 환각여부 검증을 할 수 없습니다.");
+                // 답변이 없는 경우 - PromptOptimize로 이동
+                navigate(`/promptopt/${promptId}`, { state: detail });
             }
         } catch (err) {
             console.error("교차검증 상세 조회 실패", err);

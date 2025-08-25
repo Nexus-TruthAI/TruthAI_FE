@@ -329,7 +329,12 @@ const CrossCheckQ = () => {
     const [showModal, setShowModal] = useState(false);
     const [modalType, setModalType] = useState<'noInput' | 'noAI' | 'singleAI' | 'error' | null>(errorMessage ? 'error' : null);
     const [promptText, setPromptText] = useState(optimizedPrompt || ""); // 최적화된 프롬프트가 있으면 사용, 없으면 빈 문자열
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+
+    // PromptOptimize에서 넘어온 데이터
+    const promptId = location.state?.promptId;
+    const persona = location.state?.persona;
 
     const handleCheckboxChange = (value: string) => {
         setSelectedAIs(prev => 
@@ -437,6 +442,49 @@ const CrossCheckQ = () => {
         setModalType(null);
     };
 
+    // 최적화된 프롬프트로 LLM 응답 생성하는 함수
+    const handleGetLLMResponse = async () => {
+        if (!optimizedPrompt || !promptId) {
+            console.error('최적화된 프롬프트 또는 promptId가 없습니다');
+            return;
+        }
+
+        try {
+            setIsLoading(true); // 로딩 상태 관리
+            
+            // 로딩 중일 때 CrossCheckL로 이동
+            navigate('/crosscheckl', { 
+                state: { 
+                    selectedAIs, 
+                    promptText: optimizedPrompt,
+                    isLoading: true,
+                    promptId: promptId,
+                    persona: persona
+                } 
+            });
+            
+        } catch (error) {
+            console.error('❌ LLM 응답 생성 실패:', error);
+            setModalType('error');
+            setShowModal(true);
+        } finally {
+            setIsLoading(false); // 로딩 상태 관리
+        }
+    };
+
+    // SendBtn 클릭 시 handleGetLLMResponse 호출
+    const handleSendBtnClick = () => {
+        if (isLoading) return; // 로딩 중일 때는 클릭 무시
+        
+        if (optimizedPrompt) {
+            // 최적화된 프롬프트가 있으면 handleGetLLMResponse 호출
+            handleGetLLMResponse();
+        } else {
+            // 최적화된 프롬프트가 없으면 기존 handleSendClick 호출
+            handleSendClick();
+        }
+    };
+
     return (
         <Wrapper>
             <Topbar />
@@ -458,12 +506,14 @@ const CrossCheckQ = () => {
                                     onChange={(e) => setPromptText(e.target.value)}
                                     />
                                 )}
-                                {/*<PromptInput
-                                    placeholder="프롬프트를 입력해주세요."
-                                    value={promptText}
-                                    onChange={(e) => setPromptText(e.target.value)}
-                                />*/}
-                                <SendBtn src={CircleArrowBtn} onClick={handleSendClick} />
+                                <SendBtn 
+                                    src={CircleArrowBtn} 
+                                    onClick={handleSendBtnClick}
+                                    style={{
+                                        opacity: isLoading ? 0.6 : 1,
+                                        cursor: isLoading ? 'not-allowed' : 'pointer'
+                                    }}
+                                />
                             </PromptInputWrapper>
                             
                             <ChoiceWrapper>
@@ -517,6 +567,9 @@ const CrossCheckQ = () => {
                                 </Checkbox>
                             </ChoiceWrapper>
                         </PromptContainer>
+                        
+                        {/* 프롬프트를 받았을 때와 안 받았을 때를 구분하여 버튼 처리 */}
+                        {/* 버튼 제거 - SendBtn만 사용 */}
                     </ContentWrapper>
                 </MainWrapper>
             </CrossCheckWrapper>

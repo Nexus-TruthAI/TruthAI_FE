@@ -177,6 +177,7 @@ export const getPromptDetail = async (promptId: number): Promise<PromptDetail> =
   }
 };
 
+
 // 폴더 내 프롬프트 목록 조회
 export const getFolderPrompts = async (folderId: number): Promise<FolderPrompt[]> => {
   try {

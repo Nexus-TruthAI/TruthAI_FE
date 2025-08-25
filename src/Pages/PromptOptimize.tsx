@@ -353,7 +353,13 @@ const PromptOptimize = () => {
   const handleCrossValidation = () => {
     if (!isOptimized) return; // 혹시 안전장치
     const cleanedPrompt = parsePromptForCrossCheck(prompt);
-    navigate("/crosscheckq", { state: { optimizedPrompt: cleanedPrompt } });
+    navigate("/crosscheckq", { 
+      state: { 
+        optimizedPrompt: cleanedPrompt,
+        promptId: currentPromptId,
+        persona: "" // persona 정보가 있다면 여기에 추가
+      } 
+    });
   };
 
   {/*   🛠️ 최적화된 프롬프트 관련 함수   */}
