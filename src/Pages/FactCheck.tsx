@@ -27,6 +27,7 @@ const Wrapper = styled.div`
 const FactCheckWrapper = styled.div`
     display: flex;
     flex-direction: row;
+    padding-top: 4rem;
 `
 const MainWrapper = styled.div`
     flex: 1;
@@ -139,21 +140,24 @@ const ScoreWrapper = styled.div`
     gap: 8.75rem;
     margin-left: 4.5rem;
 `
-const ScoreDisplay = styled.div`
-    display: flex;
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 600;
-    line-height: normal;
-    padding: 0.68rem 2rem;
-    width: 2rem;
-    height: 1.5rem;
-    justify-content: center;
-    align-items: center;
-    border-radius: 100px;
-    background: #3B5AF7; // 점수에 따라 바꿀 것
-    color: #FFFFFF;
-`
+
+// 🚀 점수 표시용 공통 컴포넌트
+const ScoreDisplay = styled.div<{ color: string }>`
+  display: flex;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  padding: 0.68rem 2rem;
+  min-width: 2rem;
+  height: 1.5rem;
+  justify-content: center;
+  align-items: center;
+  border-radius: 100px;
+  background: ${props => props.color};
+  color: #FFFFFF;
+`;
+
 const QuestionMark = styled.img`
     width: 1rem;
     height: 1rem;
@@ -302,6 +306,23 @@ const FactCheck = () => {
 
   const hallucinationText = ["낮음", "보통", "높음"];
 
+  // 환각의심도 색상 매핑
+const getHallucinationColor = (level: number) => {
+  switch (level) {
+    case 0: return "#3B5AF7"; // 낮음 → 파랑
+    case 1: return "#FFBF00"; // 보통 → 노랑
+    case 2: return "#FF2E2E"; // 높음 → 빨강
+    default: return "#999";   // 기본 회색
+  }
+};
+
+// 유사도 색상 매핑
+const getSimilarityColor = (similarity: number) => {
+  if (similarity >= 75) return "#3B5AF7"; // 파랑
+  if (similarity >= 50) return "#FFBF00"; // 노랑
+  return "#FF2E2E"; // 빨강
+};
+
   useEffect(() => {
     const fetchCrossCheck = async () => {
       try {
@@ -408,11 +429,14 @@ const FactCheck = () => {
                   <TooltipBox>{tooltipText1}</TooltipBox>
                 </TooltipWrapper>
               </ScoreTitleWrapper>
+              {/* 환각의심도 */}
               <ScoreWrapper>
                 {tabs.map(tab => {
                   const level = results[tab.id]?.hallucinationLevel;
                   return level !== undefined && level !== null ? (
-                    <ScoreDisplay key={tab.id}>{hallucinationText[level]}</ScoreDisplay>
+                    <ScoreDisplay key={tab.id} color={getHallucinationColor(level)}>
+                      {hallucinationText[level]}
+                    </ScoreDisplay>
                   ) : (
                     <ScoreEmpty key={tab.id}>-</ScoreEmpty>
                   );
@@ -428,11 +452,14 @@ const FactCheck = () => {
                   <TooltipBox>{tooltipText2}</TooltipBox>
                 </TooltipWrapper>
               </ScoreTitleWrapper>
+              {/* 유사도 */}
               <ScoreWrapper>
                 {tabs.map(tab => {
                   const similarity = results[tab.id]?.similarity;
                   return similarity !== undefined && similarity !== null ? (
-                    <ScoreDisplay key={tab.id}>{`${similarity}%`}</ScoreDisplay>
+                    <ScoreDisplay key={tab.id} color={getSimilarityColor(similarity)}>
+                      {`${similarity}%`}
+                    </ScoreDisplay>
                   ) : (
                     <ScoreEmpty key={tab.id}>-</ScoreEmpty>
                   );

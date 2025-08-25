@@ -382,7 +382,7 @@ const PromptOptimizeDetails = () => {
         navigate("/login");
       } else {
         // 🔹 토큰 유효 -> persona 가져오기
-        api.get("/auth/persona")
+        api.get("/persona")
           .then(res => {
           setPersona(res.data.persona);
           })
